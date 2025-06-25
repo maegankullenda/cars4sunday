@@ -1,0 +1,24 @@
+build:
+  maxIssues: 50
+
+config:
+  validation: true
+
+processors:
+  active: true
+
+console-reports:
+  active: true
+
+output-reports:
+  active: true
+
+style:
+  active: true
+  MagicNumber:
+    active: true
+    ignoreNumbers: ["-1", "0", "1", "2"]
+  WildcardImport:
+    active: true
+  NewLineAtEndOfFile:
+    active: true
