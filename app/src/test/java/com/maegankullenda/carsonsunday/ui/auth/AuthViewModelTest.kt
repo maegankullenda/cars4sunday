@@ -1,6 +1,7 @@
 package com.maegankullenda.carsonsunday.ui.auth
 
 import com.maegankullenda.carsonsunday.domain.model.User
+import com.maegankullenda.carsonsunday.domain.model.UserRole
 import com.maegankullenda.carsonsunday.domain.usecase.LoginUseCase
 import com.maegankullenda.carsonsunday.domain.usecase.RegisterUseCase
 import io.mockk.coEvery
@@ -107,11 +108,18 @@ class AuthViewModelTest {
             mobileNumber = mobileNumber,
         )
         coEvery {
-            mockRegisterUseCase(username, password, name, surname, mobileNumber)
+            mockRegisterUseCase(username, password, name, surname, mobileNumber, UserRole.USER)
         } returns Result.success(user)
 
         // When
-        authViewModel.register(username, password, name, surname, mobileNumber)
+        authViewModel.register(
+            username,
+            password,
+            name,
+            surname,
+            mobileNumber,
+            role = UserRole.USER,
+        )
         testDispatcher.scheduler.advanceUntilIdle()
 
         // Then
@@ -130,11 +138,18 @@ class AuthViewModelTest {
         val mobileNumber = "1234567890"
         val errorMessage = "Username already exists"
         coEvery {
-            mockRegisterUseCase(username, password, name, surname, mobileNumber)
+            mockRegisterUseCase(username, password, name, surname, mobileNumber, UserRole.USER)
         } returns Result.failure(Exception(errorMessage))
 
         // When
-        authViewModel.register(username, password, name, surname, mobileNumber)
+        authViewModel.register(
+            username,
+            password,
+            name,
+            surname,
+            mobileNumber,
+            role = UserRole.USER,
+        )
         testDispatcher.scheduler.advanceUntilIdle()
 
         // Then

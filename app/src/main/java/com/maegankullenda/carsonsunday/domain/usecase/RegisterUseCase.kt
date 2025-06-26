@@ -3,6 +3,7 @@
 package com.maegankullenda.carsonsunday.domain.usecase
 
 import com.maegankullenda.carsonsunday.domain.model.User
+import com.maegankullenda.carsonsunday.domain.model.UserRole
 import com.maegankullenda.carsonsunday.domain.repository.AuthRepository
 import javax.inject.Inject
 
@@ -15,6 +16,7 @@ class RegisterUseCase @Inject constructor(
         name: String,
         surname: String,
         mobileNumber: String,
+        role: UserRole,
     ): Result<User> {
         if (username.isBlank()) {
             return Result.failure(IllegalArgumentException("Username cannot be empty"))
@@ -32,6 +34,6 @@ class RegisterUseCase @Inject constructor(
             return Result.failure(IllegalArgumentException("Mobile number cannot be empty"))
         }
 
-        return authRepository.register(username, password, name, surname, mobileNumber)
+        return authRepository.register(username, password, name, surname, mobileNumber, role)
     }
 }

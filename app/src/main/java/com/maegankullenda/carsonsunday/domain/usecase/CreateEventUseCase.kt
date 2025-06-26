@@ -19,17 +19,16 @@ class CreateEventUseCase @Inject constructor(
         location: String,
     ): Result<Event> {
         // Validate input
-        if (title.isBlank()) {
-            return Result.failure(IllegalArgumentException("Title cannot be empty"))
+        val validationError = when {
+            title.isBlank() -> "Title cannot be empty"
+            description.isBlank() -> "Description cannot be empty"
+            location.isBlank() -> "Location cannot be empty"
+            date.isBefore(LocalDateTime.now()) -> "Event date cannot be in the past"
+            else -> null
         }
-        if (description.isBlank()) {
-            return Result.failure(IllegalArgumentException("Description cannot be empty"))
-        }
-        if (location.isBlank()) {
-            return Result.failure(IllegalArgumentException("Location cannot be empty"))
-        }
-        if (date.isBefore(LocalDateTime.now())) {
-            return Result.failure(IllegalArgumentException("Event date cannot be in the past"))
+
+        if (validationError != null) {
+            return Result.failure(IllegalArgumentException(validationError))
         }
 
         // Check if current user is admin

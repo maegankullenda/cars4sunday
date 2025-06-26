@@ -3,6 +3,7 @@ package com.maegankullenda.carsonsunday.ui.auth
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.maegankullenda.carsonsunday.domain.model.User
+import com.maegankullenda.carsonsunday.domain.model.UserRole
 import com.maegankullenda.carsonsunday.domain.usecase.LoginUseCase
 import com.maegankullenda.carsonsunday.domain.usecase.RegisterUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -41,11 +42,12 @@ class AuthViewModel @Inject constructor(
         name: String,
         surname: String,
         mobileNumber: String,
+        role: UserRole,
     ) {
         viewModelScope.launch {
             _uiState.value = AuthUiState.Loading
 
-            registerUseCase(username, password, name, surname, mobileNumber)
+            registerUseCase(username, password, name, surname, mobileNumber, role)
                 .onSuccess { user ->
                     _uiState.value = AuthUiState.Success(user)
                 }

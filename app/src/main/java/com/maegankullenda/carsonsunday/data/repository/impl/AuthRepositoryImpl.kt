@@ -2,6 +2,7 @@ package com.maegankullenda.carsonsunday.data.repository.impl
 
 import com.maegankullenda.carsonsunday.data.source.local.UserLocalDataSource
 import com.maegankullenda.carsonsunday.domain.model.User
+import com.maegankullenda.carsonsunday.domain.model.UserRole
 import com.maegankullenda.carsonsunday.domain.repository.AuthRepository
 import kotlinx.coroutines.flow.Flow
 import java.io.IOException
@@ -16,8 +17,10 @@ class AuthRepositoryImpl @Inject constructor(
 
     override suspend fun login(username: String, password: String): Result<User> {
         return try {
-            val user = userLocalDataSource.getUser()
-            if (user != null && user.username == username && user.password == password) {
+            val user = userLocalDataSource.getUserByUsername(username)
+            if (user != null && user.password == password) {
+                // Set the current user when login is successful
+                userLocalDataSource.saveUser(user)
                 Result.success(user)
             } else {
                 Result.failure(Exception("Invalid username or password"))
@@ -35,10 +38,11 @@ class AuthRepositoryImpl @Inject constructor(
         name: String,
         surname: String,
         mobileNumber: String,
+        role: UserRole,
     ): Result<User> {
         return try {
-            val existingUser = userLocalDataSource.getUser()
-            if (existingUser != null && existingUser.username == username) {
+            val existingUser = userLocalDataSource.getUserByUsername(username)
+            if (existingUser != null) {
                 return Result.failure(Exception("Username already exists"))
             }
 
@@ -49,6 +53,7 @@ class AuthRepositoryImpl @Inject constructor(
                 name = name,
                 surname = surname,
                 mobileNumber = mobileNumber,
+                role = role,
             )
 
             userLocalDataSource.saveUser(newUser)
@@ -70,5 +75,22 @@ class AuthRepositoryImpl @Inject constructor(
 
     override fun isUserLoggedIn(): Flow<Boolean> {
         return userLocalDataSource.isUserLoggedIn
+    }
+
+    override suspend fun makeUserAdmin(username: String): Result<User> {
+        return try {
+            val user = userLocalDataSource.getUserByUsername(username)
+            if (user == null) {
+                return Result.failure(Exception("User not found"))
+            }
+
+            val adminUser = user.copy(role = UserRole.ADMIN)
+            userLocalDataSource.saveUser(adminUser)
+            Result.success(adminUser)
+        } catch (e: IOException) {
+            Result.failure(e)
+        } catch (e: IllegalArgumentException) {
+            Result.failure(e)
+        }
     }
 }

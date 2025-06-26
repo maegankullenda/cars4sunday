@@ -2,11 +2,13 @@ package com.maegankullenda.carsonsunday.ui.auth
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -16,6 +18,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -32,6 +36,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.maegankullenda.carsonsunday.domain.model.UserRole
 
 @Composable
 fun registerScreen(
@@ -44,6 +49,7 @@ fun registerScreen(
     var name by remember { mutableStateOf("") }
     var surname by remember { mutableStateOf("") }
     var mobileNumber by remember { mutableStateOf("") }
+    var isAdmin by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -138,6 +144,18 @@ fun registerScreen(
             ),
         )
 
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Switch(
+                checked = isAdmin,
+                onCheckedChange = { isAdmin = it },
+                colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colorScheme.primary),
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(if (isAdmin) "Register as Admin" else "Register as User")
+        }
+
         Spacer(modifier = Modifier.height(24.dp))
 
         if (uiState is AuthUiState.Loading) {
@@ -145,7 +163,14 @@ fun registerScreen(
         } else {
             Button(
                 onClick = {
-                    viewModel.register(username, password, name, surname, mobileNumber)
+                    viewModel.register(
+                        username,
+                        password,
+                        name,
+                        surname,
+                        mobileNumber,
+                        if (isAdmin) UserRole.ADMIN else UserRole.USER,
+                    )
                 },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = username.isNotBlank() && password.isNotBlank() &&

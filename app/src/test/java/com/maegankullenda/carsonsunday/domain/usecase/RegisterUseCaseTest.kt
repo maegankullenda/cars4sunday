@@ -1,6 +1,7 @@
 package com.maegankullenda.carsonsunday.domain.usecase
 
 import com.maegankullenda.carsonsunday.domain.model.User
+import com.maegankullenda.carsonsunday.domain.model.UserRole
 import com.maegankullenda.carsonsunday.domain.repository.AuthRepository
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -49,6 +50,7 @@ class RegisterUseCaseTest {
             name = name,
             surname = surname,
             mobileNumber = mobileNumber,
+            role = UserRole.USER,
         )
 
         // Then
@@ -72,6 +74,7 @@ class RegisterUseCaseTest {
             name = name,
             surname = surname,
             mobileNumber = mobileNumber,
+            role = UserRole.USER,
         )
 
         // Then
@@ -96,6 +99,7 @@ class RegisterUseCaseTest {
             name = name,
             surname = surname,
             mobileNumber = mobileNumber,
+            role = UserRole.USER,
         )
 
         // Then
@@ -120,6 +124,7 @@ class RegisterUseCaseTest {
             name = name,
             surname = surname,
             mobileNumber = mobileNumber,
+            role = UserRole.USER,
         )
 
         // Then
@@ -144,6 +149,7 @@ class RegisterUseCaseTest {
             name = name,
             surname = surname,
             mobileNumber = mobileNumber,
+            role = UserRole.USER,
         )
 
         // Then
@@ -168,6 +174,7 @@ class RegisterUseCaseTest {
             name = name,
             surname = surname,
             mobileNumber = mobileNumber,
+            role = UserRole.USER,
         )
 
         // Then
@@ -192,6 +199,7 @@ class RegisterUseCaseTest {
             name = name,
             surname = surname,
             mobileNumber = mobileNumber,
+            role = UserRole.USER,
         )
 
         // Then
@@ -220,6 +228,7 @@ class RegisterUseCaseTest {
             name = name,
             surname = surname,
             mobileNumber = mobileNumber,
+            role = UserRole.USER,
         )
 
         // Then

@@ -26,6 +26,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 @Composable
 fun welcomeScreen(
     onNavigateToLogin: () -> Unit,
+    onNavigateToEvents: () -> Unit,
+    onNavigateToNotices: () -> Unit,
     viewModel: WelcomeViewModel = hiltViewModel(),
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
@@ -66,6 +68,25 @@ fun welcomeScreen(
                     text = "You are successfully logged in!",
                     style = MaterialTheme.typography.bodyLarge,
                 )
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                // Navigation buttons
+                Button(
+                    onClick = onNavigateToEvents,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text("View Events")
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(
+                    onClick = onNavigateToNotices,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text("View Notices")
+                }
 
                 Spacer(modifier = Modifier.height(32.dp))
 

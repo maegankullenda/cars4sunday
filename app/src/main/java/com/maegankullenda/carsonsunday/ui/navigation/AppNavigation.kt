@@ -6,6 +6,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.maegankullenda.carsonsunday.ui.auth.loginScreen
 import com.maegankullenda.carsonsunday.ui.auth.registerScreen
+import com.maegankullenda.carsonsunday.ui.events.createEventScreen
+import com.maegankullenda.carsonsunday.ui.events.eventsScreen
+import com.maegankullenda.carsonsunday.ui.notices.createNoticeScreen
+import com.maegankullenda.carsonsunday.ui.notices.noticesScreen
 import com.maegankullenda.carsonsunday.ui.welcome.welcomeScreen
 
 @Composable
@@ -48,6 +52,56 @@ fun appNavigation(navController: NavHostController) {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(0) { inclusive = true }
                     }
+                },
+                onNavigateToEvents = {
+                    navController.navigate(Screen.Events.route)
+                },
+                onNavigateToNotices = {
+                    navController.navigate(Screen.Notices.route)
+                },
+            )
+        }
+
+        composable(Screen.Events.route) {
+            eventsScreen(
+                onNavigateToCreateEvent = {
+                    navController.navigate(Screen.CreateEvent.route)
+                },
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+            )
+        }
+
+        composable(Screen.CreateEvent.route) {
+            createEventScreen(
+                onEventCreated = {
+                    navController.popBackStack()
+                },
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+            )
+        }
+
+        composable(Screen.Notices.route) {
+            noticesScreen(
+                onNavigateToCreateNotice = {
+                    navController.navigate(Screen.CreateNotice.route)
+                },
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+            )
+        }
+
+        composable(Screen.CreateNotice.route) {
+            createNoticeScreen(
+                onNoticeCreated = {
+                    navController.popBackStack()
+                },
+                onNavigateBack = {
+                    navController.popBackStack()
                 },
             )
         }

@@ -40,7 +40,8 @@ class AuthRepositoryImplTest {
             surname = "User",
             mobileNumber = "1234567890",
         )
-        coEvery { mockUserLocalDataSource.getUser() } returns user
+        coEvery { mockUserLocalDataSource.getUserByUsername(any()) } returns user
+        coEvery { mockUserLocalDataSource.saveUser(any()) } returns Unit
 
         // When
         val result = authRepository.login(username, password)
@@ -55,15 +56,7 @@ class AuthRepositoryImplTest {
         // Given
         val username = "testuser"
         val password = "testpass"
-        val user = User(
-            id = "1",
-            username = "differentuser",
-            password = password,
-            name = "Test",
-            surname = "User",
-            mobileNumber = "1234567890",
-        )
-        coEvery { mockUserLocalDataSource.getUser() } returns user
+        coEvery { mockUserLocalDataSource.getUserByUsername(username) } returns null
 
         // When
         val result = authRepository.login(username, password)
@@ -86,7 +79,7 @@ class AuthRepositoryImplTest {
             surname = "User",
             mobileNumber = "1234567890",
         )
-        coEvery { mockUserLocalDataSource.getUser() } returns user
+        coEvery { mockUserLocalDataSource.getUserByUsername(any()) } returns user
 
         // When
         val result = authRepository.login(username, password)
@@ -101,7 +94,7 @@ class AuthRepositoryImplTest {
         // Given
         val username = "testuser"
         val password = "testpass"
-        coEvery { mockUserLocalDataSource.getUser() } returns null
+        coEvery { mockUserLocalDataSource.getUserByUsername(any()) } returns null
 
         // When
         val result = authRepository.login(username, password)
@@ -120,7 +113,7 @@ class AuthRepositoryImplTest {
         val surname = "User"
         val mobileNumber = "1234567890"
 
-        coEvery { mockUserLocalDataSource.getUser() } returns null
+        coEvery { mockUserLocalDataSource.getUserByUsername(any()) } returns null
         coEvery { mockUserLocalDataSource.saveUser(any()) } returns Unit
 
         // When
@@ -157,7 +150,7 @@ class AuthRepositoryImplTest {
             surname = "User",
             mobileNumber = "0987654321",
         )
-        coEvery { mockUserLocalDataSource.getUser() } returns existingUser
+        coEvery { mockUserLocalDataSource.getUserByUsername(any()) } returns existingUser
 
         // When
         val result = authRepository.register(username, password, name, surname, mobileNumber)
@@ -191,6 +184,7 @@ class AuthRepositoryImplTest {
     fun `getCurrentUser should return null when no user stored`() = runTest {
         // Given
         coEvery { mockUserLocalDataSource.getUser() } returns null
+        coEvery { mockUserLocalDataSource.getUserByUsername(any()) } returns null
 
         // When
         val result = authRepository.getCurrentUser()

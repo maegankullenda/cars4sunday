@@ -2,6 +2,9 @@ package com.maegankullenda.carsonsunday.data.source.local
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.maegankullenda.carsonsunday.domain.model.User
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -18,48 +21,66 @@ class UserLocalDataSource @Inject constructor(
         PREFS_NAME,
         Context.MODE_PRIVATE,
     )
+    private val gson = Gson()
 
     private val _isUserLoggedIn = MutableStateFlow(false)
     val isUserLoggedIn: Flow<Boolean> = _isUserLoggedIn.asStateFlow()
 
     fun saveUser(user: User) {
-        prefs.edit()
-            .putString(KEY_USER_ID, user.id)
-            .putString(KEY_USERNAME, user.username)
-            .putString(KEY_PASSWORD, user.password)
-            .putString(KEY_NAME, user.name)
-            .putString(KEY_SURNAME, user.surname)
-            .putString(KEY_MOBILE_NUMBER, user.mobileNumber)
-            .putBoolean(KEY_IS_LOGGED_IN, true)
-            .apply()
-
-        _isUserLoggedIn.value = true
+        val users = getUsers().toMutableList()
+        // Check if user already exists and update, otherwise add new user
+        val existingUserIndex = users.indexOfFirst { it.username == user.username }
+        if (existingUserIndex != -1) {
+            users[existingUserIndex] = user
+        } else {
+            users.add(user)
+        }
+        saveUsers(users)
+        // Set current logged in user
+        setCurrentUser(user)
     }
 
     fun getUser(): User? {
-        val userId = prefs.getString(KEY_USER_ID, null)
-        val username = prefs.getString(KEY_USERNAME, null)
-        val password = prefs.getString(KEY_PASSWORD, null)
-        val name = prefs.getString(KEY_NAME, null)
-        val surname = prefs.getString(KEY_SURNAME, null)
-        val mobileNumber = prefs.getString(KEY_MOBILE_NUMBER, null)
+        val currentUserId = prefs.getString(KEY_CURRENT_USER_ID, null) ?: return null
+        return getUsers().find { it.id == currentUserId }
+    }
 
-        if (listOf(userId, username, password, name, surname, mobileNumber).any { it == null }) {
-            return null
+    fun getUserByUsername(username: String): User? {
+        return getUsers().find { it.username == username }
+    }
+
+    private fun getUsers(): List<User> {
+        val usersJson = prefs.getString(KEY_USERS, "[]")
+        val type = object : TypeToken<List<User>>() {}.type
+        return try {
+            gson.fromJson(usersJson, type) ?: emptyList()
+        } catch (e: com.google.gson.JsonSyntaxException) {
+            Log.w("UserLocalDataSource", "Invalid JSON format for users, returning empty list", e)
+            emptyList()
+        } catch (e: com.google.gson.JsonParseException) {
+            Log.w("UserLocalDataSource", "JSON parsing error for users, returning empty list", e)
+            emptyList()
         }
+    }
 
-        return User(
-            id = userId!!,
-            username = username!!,
-            password = password!!,
-            name = name!!,
-            surname = surname!!,
-            mobileNumber = mobileNumber!!,
-        )
+    private fun saveUsers(users: List<User>) {
+        val usersJson = gson.toJson(users)
+        prefs.edit().putString(KEY_USERS, usersJson).apply()
+    }
+
+    private fun setCurrentUser(user: User) {
+        prefs.edit()
+            .putString(KEY_CURRENT_USER_ID, user.id)
+            .putBoolean(KEY_IS_LOGGED_IN, true)
+            .apply()
+        _isUserLoggedIn.value = true
     }
 
     fun clearUser() {
-        prefs.edit().clear().apply()
+        prefs.edit()
+            .remove(KEY_CURRENT_USER_ID)
+            .putBoolean(KEY_IS_LOGGED_IN, false)
+            .apply()
         _isUserLoggedIn.value = false
     }
 
@@ -69,12 +90,8 @@ class UserLocalDataSource @Inject constructor(
 
     companion object {
         private const val PREFS_NAME = "user_prefs"
-        private const val KEY_USER_ID = "user_id"
-        private const val KEY_USERNAME = "username"
-        private const val KEY_PASSWORD = "password"
-        private const val KEY_NAME = "name"
-        private const val KEY_SURNAME = "surname"
-        private const val KEY_MOBILE_NUMBER = "mobile_number"
+        private const val KEY_USERS = "users"
+        private const val KEY_CURRENT_USER_ID = "current_user_id"
         private const val KEY_IS_LOGGED_IN = "is_logged_in"
     }
 }
