@@ -6,8 +6,6 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.slot
-import io.mockk.verify
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -40,7 +38,7 @@ class AuthRepositoryImplTest {
             password = password,
             name = "Test",
             surname = "User",
-            mobileNumber = "1234567890"
+            mobileNumber = "1234567890",
         )
         coEvery { mockUserLocalDataSource.getUser() } returns user
 
@@ -63,7 +61,7 @@ class AuthRepositoryImplTest {
             password = password,
             name = "Test",
             surname = "User",
-            mobileNumber = "1234567890"
+            mobileNumber = "1234567890",
         )
         coEvery { mockUserLocalDataSource.getUser() } returns user
 
@@ -86,7 +84,7 @@ class AuthRepositoryImplTest {
             password = "differentpass",
             name = "Test",
             surname = "User",
-            mobileNumber = "1234567890"
+            mobileNumber = "1234567890",
         )
         coEvery { mockUserLocalDataSource.getUser() } returns user
 
@@ -121,7 +119,7 @@ class AuthRepositoryImplTest {
         val name = "New"
         val surname = "User"
         val mobileNumber = "1234567890"
-        
+
         coEvery { mockUserLocalDataSource.getUser() } returns null
         coEvery { mockUserLocalDataSource.saveUser(any()) } returns Unit
 
@@ -138,7 +136,7 @@ class AuthRepositoryImplTest {
         assertEquals(surname, user?.surname)
         assertEquals(mobileNumber, user?.mobileNumber)
         assertNotNull(user?.id)
-        
+
         coVerify { mockUserLocalDataSource.saveUser(user!!) }
     }
 
@@ -150,14 +148,14 @@ class AuthRepositoryImplTest {
         val name = "New"
         val surname = "User"
         val mobileNumber = "1234567890"
-        
+
         val existingUser = User(
             id = "1",
             username = username,
             password = "oldpass",
             name = "Old",
             surname = "User",
-            mobileNumber = "0987654321"
+            mobileNumber = "0987654321",
         )
         coEvery { mockUserLocalDataSource.getUser() } returns existingUser
 
@@ -178,7 +176,7 @@ class AuthRepositoryImplTest {
             password = "testpass",
             name = "Test",
             surname = "User",
-            mobileNumber = "1234567890"
+            mobileNumber = "1234567890",
         )
         coEvery { mockUserLocalDataSource.getUser() } returns expectedUser
 
@@ -225,4 +223,4 @@ class AuthRepositoryImplTest {
         // Then
         assertEquals(expectedFlow, result)
     }
-} 
+}

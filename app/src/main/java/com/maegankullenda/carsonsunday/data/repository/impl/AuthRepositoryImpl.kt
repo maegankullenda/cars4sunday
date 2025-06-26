@@ -4,6 +4,7 @@ import com.maegankullenda.carsonsunday.data.source.local.UserLocalDataSource
 import com.maegankullenda.carsonsunday.domain.model.User
 import com.maegankullenda.carsonsunday.domain.repository.AuthRepository
 import kotlinx.coroutines.flow.Flow
+import java.io.IOException
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -21,7 +22,9 @@ class AuthRepositoryImpl @Inject constructor(
             } else {
                 Result.failure(Exception("Invalid username or password"))
             }
-        } catch (e: Exception) {
+        } catch (e: IOException) {
+            Result.failure(e)
+        } catch (e: IllegalArgumentException) {
             Result.failure(e)
         }
     }
@@ -50,7 +53,9 @@ class AuthRepositoryImpl @Inject constructor(
 
             userLocalDataSource.saveUser(newUser)
             Result.success(newUser)
-        } catch (e: Exception) {
+        } catch (e: IOException) {
+            Result.failure(e)
+        } catch (e: IllegalArgumentException) {
             Result.failure(e)
         }
     }

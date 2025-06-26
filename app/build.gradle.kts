@@ -67,6 +67,18 @@ detekt {
     config.setFrom(files("$projectDir/config/detekt/detekt.yml"))
     buildUponDefaultConfig = true
     allRules = false
+
+    // Exclude UI-related files from strict rules
+    baseline = file("$projectDir/config/detekt/baseline.xml")
+
+    // Configure source sets to apply different rules
+    source.setFrom(
+        files(
+            "src/main/java",
+            "src/test/java",
+            "src/androidTest/java",
+        ),
+    )
 }
 
 dependencies {
@@ -98,6 +110,7 @@ dependencies {
     implementation(libs.okhttp.logging)
     implementation(libs.moshi.core)
     implementation(libs.moshi.kotlin)
+    implementation("com.google.code.gson:gson:2.10.1")
 
     // Image Loading
     implementation(libs.coil.compose)

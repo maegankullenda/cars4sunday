@@ -44,17 +44,17 @@ class UserLocalDataSource @Inject constructor(
         val surname = prefs.getString(KEY_SURNAME, null)
         val mobileNumber = prefs.getString(KEY_MOBILE_NUMBER, null)
 
-        if (userId == null || username == null || password == null || name == null || surname == null || mobileNumber == null) {
+        if (listOf(userId, username, password, name, surname, mobileNumber).any { it == null }) {
             return null
         }
 
         return User(
-            id = userId,
-            username = username,
-            password = password,
-            name = name,
-            surname = surname,
-            mobileNumber = mobileNumber,
+            id = userId!!,
+            username = username!!,
+            password = password!!,
+            name = name!!,
+            surname = surname!!,
+            mobileNumber = mobileNumber!!,
         )
     }
 

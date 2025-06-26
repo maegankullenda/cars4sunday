@@ -36,14 +36,20 @@ class RegisterUseCaseTest {
             password = password,
             name = name,
             surname = surname,
-            mobileNumber = mobileNumber
+            mobileNumber = mobileNumber,
         )
-        coEvery { 
-            mockAuthRepository.register(username, password, name, surname, mobileNumber) 
+        coEvery {
+            mockAuthRepository.register(username, password, name, surname, mobileNumber)
         } returns Result.success(expectedUser)
 
         // When
-        val result = registerUseCase(username, password, name, surname, mobileNumber)
+        val result = registerUseCase(
+            username = username,
+            password = password,
+            name = name,
+            surname = surname,
+            mobileNumber = mobileNumber,
+        )
 
         // Then
         assertTrue(result.isSuccess)
@@ -60,7 +66,13 @@ class RegisterUseCaseTest {
         val mobileNumber = "1234567890"
 
         // When
-        val result = registerUseCase(username, password, name, surname, mobileNumber)
+        val result = registerUseCase(
+            username = username,
+            password = password,
+            name = name,
+            surname = surname,
+            mobileNumber = mobileNumber,
+        )
 
         // Then
         assertFalse(result.isSuccess)
@@ -78,7 +90,13 @@ class RegisterUseCaseTest {
         val mobileNumber = "1234567890"
 
         // When
-        val result = registerUseCase(username, password, name, surname, mobileNumber)
+        val result = registerUseCase(
+            username = username,
+            password = password,
+            name = name,
+            surname = surname,
+            mobileNumber = mobileNumber,
+        )
 
         // Then
         assertFalse(result.isSuccess)
@@ -96,7 +114,13 @@ class RegisterUseCaseTest {
         val mobileNumber = "1234567890"
 
         // When
-        val result = registerUseCase(username, password, name, surname, mobileNumber)
+        val result = registerUseCase(
+            username = username,
+            password = password,
+            name = name,
+            surname = surname,
+            mobileNumber = mobileNumber,
+        )
 
         // Then
         assertFalse(result.isSuccess)
@@ -114,7 +138,13 @@ class RegisterUseCaseTest {
         val mobileNumber = "1234567890"
 
         // When
-        val result = registerUseCase(username, password, name, surname, mobileNumber)
+        val result = registerUseCase(
+            username = username,
+            password = password,
+            name = name,
+            surname = surname,
+            mobileNumber = mobileNumber,
+        )
 
         // Then
         assertFalse(result.isSuccess)
@@ -132,7 +162,13 @@ class RegisterUseCaseTest {
         val mobileNumber = ""
 
         // When
-        val result = registerUseCase(username, password, name, surname, mobileNumber)
+        val result = registerUseCase(
+            username = username,
+            password = password,
+            name = name,
+            surname = surname,
+            mobileNumber = mobileNumber,
+        )
 
         // Then
         assertFalse(result.isSuccess)
@@ -150,7 +186,13 @@ class RegisterUseCaseTest {
         val mobileNumber = "   "
 
         // When
-        val result = registerUseCase(username, password, name, surname, mobileNumber)
+        val result = registerUseCase(
+            username = username,
+            password = password,
+            name = name,
+            surname = surname,
+            mobileNumber = mobileNumber,
+        )
 
         // Then
         assertFalse(result.isSuccess)
@@ -167,15 +209,21 @@ class RegisterUseCaseTest {
         val surname = "User"
         val mobileNumber = "1234567890"
         val expectedException = Exception("Username already exists")
-        coEvery { 
-            mockAuthRepository.register(username, password, name, surname, mobileNumber) 
+        coEvery {
+            mockAuthRepository.register(username, password, name, surname, mobileNumber)
         } returns Result.failure(expectedException)
 
         // When
-        val result = registerUseCase(username, password, name, surname, mobileNumber)
+        val result = registerUseCase(
+            username = username,
+            password = password,
+            name = name,
+            surname = surname,
+            mobileNumber = mobileNumber,
+        )
 
         // Then
         assertFalse(result.isSuccess)
         assertEquals(expectedException, result.exceptionOrNull())
     }
-} 
+}

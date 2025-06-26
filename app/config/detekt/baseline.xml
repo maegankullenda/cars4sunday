@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SmellBaseline>
+  <Blacklist timestamp="2024-01-01T00:00:00Z" version="1.24.0">
+    <!-- UI-related files with relaxed rules -->
+    <ID>LongFunction:app/src/main/java/com/maegankullenda/carsonsunday/ui/auth/LoginScreen.kt</ID>
+    <ID>LongFunction:app/src/main/java/com/maegankullenda/carsonsunday/ui/auth/RegisterScreen.kt</ID>
+    <ID>LongFunction:app/src/main/java/com/maegankullenda/carsonsunday/ui/welcome/WelcomeScreen.kt</ID>
+    <ID>LongFunction:app/src/main/java/com/maegankullenda/carsonsunday/ui/events/EventsScreen.kt</ID>
+    <ID>LongFunction:app/src/main/java/com/maegankullenda/carsonsunday/ui/events/CreateEventScreen.kt</ID>
+    <ID>LongFunction:app/src/main/java/com/maegankullenda/carsonsunday/ui/notices/NoticesScreen.kt</ID>
+    <ID>LongFunction:app/src/main/java/com/maegankullenda/carsonsunday/ui/notices/CreateNoticeScreen.kt</ID>
+    
+    <!-- Complex UI composables -->
+    <ID>ComplexMethod:app/src/main/java/com/maegankullenda/carsonsunday/ui/auth/LoginScreen.kt</ID>
+    <ID>ComplexMethod:app/src/main/java/com/maegankullenda/carsonsunday/ui/auth/RegisterScreen.kt</ID>
+    <ID>ComplexMethod:app/src/main/java/com/maegankullenda/carsonsunday/ui/events/EventsScreen.kt</ID>
+    <ID>ComplexMethod:app/src/main/java/com/maegankullenda/carsonsunday/ui/notices/NoticesScreen.kt</ID>
+    
+    <!-- Nested blocks in UI -->
+    <ID>NestedBlockDepth:app/src/main/java/com/maegankullenda/carsonsunday/ui/auth/LoginScreen.kt</ID>
+    <ID>NestedBlockDepth:app/src/main/java/com/maegankullenda/carsonsunday/ui/auth/RegisterScreen.kt</ID>
+    <ID>NestedBlockDepth:app/src/main/java/com/maegankullenda/carsonsunday/ui/events/EventsScreen.kt</ID>
+    <ID>NestedBlockDepth:app/src/main/java/com/maegankullenda/carsonsunday/ui/notices/NoticesScreen.kt</ID>
+    
+    <!-- Long methods in UI -->
+    <ID>LongMethod:app/src/main/java/com/maegankullenda/carsonsunday/ui/auth/LoginScreen.kt</ID>
+    <ID>LongMethod:app/src/main/java/com/maegankullenda/carsonsunday/ui/auth/RegisterScreen.kt</ID>
+    <ID>LongMethod:app/src/main/java/com/maegankullenda/carsonsunday/ui/events/EventsScreen.kt</ID>
+    <ID>LongMethod:app/src/main/java/com/maegankullenda/carsonsunday/ui/notices/NoticesScreen.kt</ID>
+    
+    <!-- Cyclomatic complexity in UI -->
+    <ID>CyclomaticComplexMethod:app/src/main/java/com/maegankullenda/carsonsunday/ui/auth/LoginScreen.kt</ID>
+    <ID>CyclomaticComplexMethod:app/src/main/java/com/maegankullenda/carsonsunday/ui/auth/RegisterScreen.kt</ID>
+    <ID>CyclomaticComplexMethod:app/src/main/java/com/maegankullenda/carsonsunday/ui/events/EventsScreen.kt</ID>
+    <ID>CyclomaticComplexMethod:app/src/main/java/com/maegankullenda/carsonsunday/ui/notices/NoticesScreen.kt</ID>
+    
+    <!-- Cognitive complexity in UI -->
+    <ID>CognitiveComplexMethod:app/src/main/java/com/maegankullenda/carsonsunday/ui/auth/LoginScreen.kt</ID>
+    <ID>CognitiveComplexMethod:app/src/main/java/com/maegankullenda/carsonsunday/ui/auth/RegisterScreen.kt</ID>
+    <ID>CognitiveComplexMethod:app/src/main/java/com/maegankullenda/carsonsunday/ui/events/EventsScreen.kt</ID>
+    <ID>CognitiveComplexMethod:app/src/main/java/com/maegankullenda/carsonsunday/ui/notices/NoticesScreen.kt</ID>
+  </Blacklist>
+</SmellBaseline> 

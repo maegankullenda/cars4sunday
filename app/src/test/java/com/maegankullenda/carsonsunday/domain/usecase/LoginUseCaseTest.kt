@@ -33,7 +33,7 @@ class LoginUseCaseTest {
             password = password,
             name = "Test",
             surname = "User",
-            mobileNumber = "1234567890"
+            mobileNumber = "1234567890",
         )
         coEvery { mockAuthRepository.login(username, password) } returns Result.success(expectedUser)
 
@@ -120,4 +120,4 @@ class LoginUseCaseTest {
         assertFalse(result.isSuccess)
         assertEquals(expectedException, result.exceptionOrNull())
     }
-} 
+}

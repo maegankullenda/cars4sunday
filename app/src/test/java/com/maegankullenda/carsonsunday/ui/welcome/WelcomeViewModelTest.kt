@@ -39,10 +39,10 @@ class WelcomeViewModelTest {
     fun `initial state should be Loading`() = runTest {
         // Given
         coEvery { mockAuthRepository.getCurrentUser() } returns null
-        
+
         // When
         welcomeViewModel = WelcomeViewModel(authRepository = mockAuthRepository)
-        
+
         // Then
         assertTrue(welcomeViewModel.uiState.value is WelcomeUiState.Loading)
     }
@@ -56,7 +56,7 @@ class WelcomeViewModelTest {
             password = "testpass",
             name = "Test",
             surname = "User",
-            mobileNumber = "1234567890"
+            mobileNumber = "1234567890",
         )
         coEvery { mockAuthRepository.getCurrentUser() } returns user
 
@@ -94,7 +94,7 @@ class WelcomeViewModelTest {
             password = "testpass",
             name = "Test",
             surname = "User",
-            mobileNumber = "1234567890"
+            mobileNumber = "1234567890",
         )
         coEvery { mockAuthRepository.getCurrentUser() } returns user
         coEvery { mockAuthRepository.logout() } returns Unit
@@ -119,7 +119,7 @@ class WelcomeViewModelTest {
             password = "testpass",
             name = "John",
             surname = "Doe",
-            mobileNumber = "1234567890"
+            mobileNumber = "1234567890",
         )
         coEvery { mockAuthRepository.getCurrentUser() } returns user
 
@@ -133,4 +133,4 @@ class WelcomeViewModelTest {
         val loadedUser = (state as WelcomeUiState.Success).user
         assertEquals("John Doe", "${loadedUser.name} ${loadedUser.surname}")
     }
-} 
+}

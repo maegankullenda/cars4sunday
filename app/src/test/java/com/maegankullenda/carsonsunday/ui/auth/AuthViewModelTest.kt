@@ -32,7 +32,7 @@ class AuthViewModelTest {
         mockRegisterUseCase = mockk()
         authViewModel = AuthViewModel(
             loginUseCase = mockLoginUseCase,
-            registerUseCase = mockRegisterUseCase
+            registerUseCase = mockRegisterUseCase,
         )
     }
 
@@ -58,7 +58,7 @@ class AuthViewModelTest {
             password = password,
             name = "Test",
             surname = "User",
-            mobileNumber = "1234567890"
+            mobileNumber = "1234567890",
         )
         coEvery { mockLoginUseCase(username, password) } returns Result.success(user)
 
@@ -104,10 +104,10 @@ class AuthViewModelTest {
             password = password,
             name = name,
             surname = surname,
-            mobileNumber = mobileNumber
+            mobileNumber = mobileNumber,
         )
-        coEvery { 
-            mockRegisterUseCase(username, password, name, surname, mobileNumber) 
+        coEvery {
+            mockRegisterUseCase(username, password, name, surname, mobileNumber)
         } returns Result.success(user)
 
         // When
@@ -129,8 +129,8 @@ class AuthViewModelTest {
         val surname = "User"
         val mobileNumber = "1234567890"
         val errorMessage = "Username already exists"
-        coEvery { 
-            mockRegisterUseCase(username, password, name, surname, mobileNumber) 
+        coEvery {
+            mockRegisterUseCase(username, password, name, surname, mobileNumber)
         } returns Result.failure(Exception(errorMessage))
 
         // When
@@ -150,7 +150,7 @@ class AuthViewModelTest {
         val password = "wrongpass"
         val errorMessage = "Invalid credentials"
         coEvery { mockLoginUseCase(username, password) } returns Result.failure(Exception(errorMessage))
-        
+
         authViewModel.login(username, password)
         testDispatcher.scheduler.advanceUntilIdle()
         assertTrue(authViewModel.uiState.value is AuthUiState.Error)
@@ -161,4 +161,4 @@ class AuthViewModelTest {
         // Then
         assertTrue(authViewModel.uiState.value is AuthUiState.Initial)
     }
-} 
+}

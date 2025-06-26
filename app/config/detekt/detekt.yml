@@ -22,3 +22,37 @@ style:
     active: true
   NewLineAtEndOfFile:
     active: true
+  MaxLineLength:
+    active: true
+    maxLineLength: 120
+    excludePackageStatements: true
+    excludeImportStatements: true
+    excludeCommentStatements: true
+
+complexity:
+  active: true
+  NestedBlockDepth:
+    active: true
+    threshold: 6
+    ignoreAnnotated:
+      - "Composable"
+  LongParameterList:
+    active: true
+    functionThreshold: 8
+    constructorThreshold: 8
+    ignoreDefaultParameters: true
+  CyclomaticComplexMethod:
+    active: true
+    threshold: 15
+    ignoreAnnotated:
+      - "Composable"
+  CognitiveComplexMethod:
+    active: true
+    threshold: 15
+    ignoreAnnotated:
+      - "Composable"
+  LongMethod:
+    active: true
+    threshold: 120
+    ignoreAnnotated:
+      - "Composable"

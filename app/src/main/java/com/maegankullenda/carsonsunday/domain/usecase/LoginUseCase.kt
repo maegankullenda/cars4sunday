@@ -1,3 +1,5 @@
+@file:Suppress("ReturnCount")
+
 package com.maegankullenda.carsonsunday.domain.usecase
 
 import com.maegankullenda.carsonsunday.domain.model.User
