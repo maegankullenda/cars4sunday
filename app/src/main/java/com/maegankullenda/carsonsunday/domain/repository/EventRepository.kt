@@ -10,4 +10,9 @@ interface EventRepository {
     suspend fun updateEvent(event: Event): Result<Event>
     suspend fun deleteEvent(id: String): Result<Unit>
     fun getEventsByCreator(creatorId: String): Flow<List<Event>>
+
+    // Attendance methods
+    suspend fun attendEvent(eventId: String, userId: String): Result<Event>
+    suspend fun leaveEvent(eventId: String, userId: String): Result<Event>
+    suspend fun isUserAttending(eventId: String, userId: String): Boolean
 }

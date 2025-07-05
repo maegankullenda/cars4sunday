@@ -18,4 +18,6 @@ interface AuthRepository {
     suspend fun logout()
     fun isUserLoggedIn(): Flow<Boolean>
     suspend fun makeUserAdmin(username: String): Result<User>
+    suspend fun getAllUsers(): List<User>
+    suspend fun getUserById(userId: String): User?
 }

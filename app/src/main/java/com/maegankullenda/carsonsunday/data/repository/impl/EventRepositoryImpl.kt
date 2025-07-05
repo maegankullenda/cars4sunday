@@ -57,4 +57,51 @@ class EventRepositoryImpl @Inject constructor(
     override fun getEventsByCreator(creatorId: String): Flow<List<Event>> {
         return eventLocalDataSource.events
     }
+
+    override suspend fun attendEvent(eventId: String, userId: String): Result<Event> {
+        return try {
+            val event = eventLocalDataSource.getEventById(eventId)
+            if (event == null) {
+                return Result.failure(Exception("Event not found"))
+            }
+
+            if (event.attendees.contains(userId)) {
+                return Result.failure(Exception("Already attending this event"))
+            }
+
+            val updatedEvent = event.copy(attendees = event.attendees + userId)
+            eventLocalDataSource.updateEvent(updatedEvent)
+            Result.success(updatedEvent)
+        } catch (e: IOException) {
+            Result.failure(e)
+        } catch (e: IllegalArgumentException) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun leaveEvent(eventId: String, userId: String): Result<Event> {
+        return try {
+            val event = eventLocalDataSource.getEventById(eventId)
+            if (event == null) {
+                return Result.failure(Exception("Event not found"))
+            }
+
+            if (!event.attendees.contains(userId)) {
+                return Result.failure(Exception("Not attending this event"))
+            }
+
+            val updatedEvent = event.copy(attendees = event.attendees - userId)
+            eventLocalDataSource.updateEvent(updatedEvent)
+            Result.success(updatedEvent)
+        } catch (e: IOException) {
+            Result.failure(e)
+        } catch (e: IllegalArgumentException) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun isUserAttending(eventId: String, userId: String): Boolean {
+        val event = eventLocalDataSource.getEventById(eventId)
+        return event?.attendees?.contains(userId) == true
+    }
 }

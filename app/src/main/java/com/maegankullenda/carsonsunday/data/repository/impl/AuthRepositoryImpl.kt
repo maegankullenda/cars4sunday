@@ -93,4 +93,12 @@ class AuthRepositoryImpl @Inject constructor(
             Result.failure(e)
         }
     }
+
+    override suspend fun getAllUsers(): List<User> {
+        return userLocalDataSource.getAllUsers()
+    }
+
+    override suspend fun getUserById(userId: String): User? {
+        return userLocalDataSource.getUserById(userId)
+    }
 }

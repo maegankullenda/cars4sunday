@@ -67,6 +67,25 @@ class EventLocalDataSource @Inject constructor(
         return _events.value.filter { it.createdBy == creatorId }
     }
 
+    fun getEventsByStatus(status: com.maegankullenda.carsonsunday.domain.model.EventStatus): List<Event> {
+        return _events.value.filter { it.status == status }
+    }
+
+    fun getUpcomingEvents(): List<Event> {
+        return _events.value.filter { it.status == com.maegankullenda.carsonsunday.domain.model.EventStatus.UPCOMING }
+            .sortedBy { it.date }
+    }
+
+    fun getCompletedEvents(): List<Event> {
+        return _events.value.filter { it.status == com.maegankullenda.carsonsunday.domain.model.EventStatus.COMPLETED }
+            .sortedByDescending { it.date }
+    }
+
+    fun getCancelledEvents(): List<Event> {
+        return _events.value.filter { it.status == com.maegankullenda.carsonsunday.domain.model.EventStatus.CANCELLED }
+            .sortedByDescending { it.date }
+    }
+
     private fun loadEvents() {
         val eventsJson = prefs.getString(KEY_EVENTS, "[]")
         val eventsList: List<EventDto> = gson.fromJson(eventsJson, object : TypeToken<List<EventDto>>() {}.type)
@@ -94,6 +113,7 @@ class EventLocalDataSource @Inject constructor(
         val createdBy: String,
         val createdAt: String,
         val isActive: Boolean,
+        val status: String? = null, // Make status nullable for backward compatibility
     ) {
         fun toEvent(): Event {
             return Event(
@@ -105,6 +125,9 @@ class EventLocalDataSource @Inject constructor(
                 createdBy = createdBy,
                 createdAt = LocalDateTime.parse(createdAt, dateFormatter),
                 isActive = isActive,
+                status = status?.let {
+                    com.maegankullenda.carsonsunday.domain.model.EventStatus.valueOf(it)
+                } ?: com.maegankullenda.carsonsunday.domain.model.EventStatus.UPCOMING, // Default to UPCOMING for old events
             )
         }
 
@@ -119,6 +142,7 @@ class EventLocalDataSource @Inject constructor(
                     createdBy = event.createdBy,
                     createdAt = event.createdAt.format(dateFormatter),
                     isActive = event.isActive,
+                    status = event.status.name,
                 )
             }
         }

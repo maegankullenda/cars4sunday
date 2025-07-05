@@ -25,11 +25,12 @@ class CreateEventViewModel @Inject constructor(
         description: String,
         date: LocalDateTime,
         location: String,
+        attendeeLimit: Int? = null,
     ) {
         viewModelScope.launch {
             _uiState.value = CreateEventUiState.Loading
 
-            createEventUseCase(title, description, date, location)
+            createEventUseCase(title, description, date, location, attendeeLimit)
                 .onSuccess { event ->
                     _uiState.value = CreateEventUiState.Success(event)
                 }

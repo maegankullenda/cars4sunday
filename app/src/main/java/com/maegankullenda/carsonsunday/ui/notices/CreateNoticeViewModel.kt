@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.maegankullenda.carsonsunday.domain.model.Notice
 import com.maegankullenda.carsonsunday.domain.model.NoticePriority
+import com.maegankullenda.carsonsunday.domain.usecase.CreateNoticeUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,15 +13,22 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class CreateNoticeViewModel @Inject constructor() : ViewModel() {
+class CreateNoticeViewModel @Inject constructor(
+    private val createNoticeUseCase: CreateNoticeUseCase,
+) : ViewModel() {
     private val _uiState = MutableStateFlow<CreateNoticeUiState>(CreateNoticeUiState.Initial)
     val uiState: StateFlow<CreateNoticeUiState> = _uiState.asStateFlow()
 
     fun createNotice(title: String, content: String, priority: NoticePriority) {
         viewModelScope.launch {
             _uiState.value = CreateNoticeUiState.Loading
-            // Create notice with repository (placeholder implementation)
-            _uiState.value = CreateNoticeUiState.Success(Notice("id", title, content, priority, "userId"))
+            createNoticeUseCase(title, content, priority)
+                .onSuccess { notice ->
+                    _uiState.value = CreateNoticeUiState.Success(notice)
+                }
+                .onFailure { exception ->
+                    _uiState.value = CreateNoticeUiState.Error(exception.message ?: "Failed to create notice")
+                }
         }
     }
 

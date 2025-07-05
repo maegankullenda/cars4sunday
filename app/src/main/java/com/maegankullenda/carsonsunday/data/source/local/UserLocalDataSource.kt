@@ -49,6 +49,14 @@ class UserLocalDataSource @Inject constructor(
         return getUsers().find { it.username == username }
     }
 
+    fun getUserById(userId: String): User? {
+        return getUsers().find { it.id == userId }
+    }
+
+    fun getAllUsers(): List<User> {
+        return getUsers()
+    }
+
     private fun getUsers(): List<User> {
         val usersJson = prefs.getString(KEY_USERS, "[]")
         val type = object : TypeToken<List<User>>() {}.type

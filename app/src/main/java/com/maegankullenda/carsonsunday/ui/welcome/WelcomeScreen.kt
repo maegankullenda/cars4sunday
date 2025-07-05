@@ -76,7 +76,7 @@ fun welcomeScreen(
                     onClick = onNavigateToEvents,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Text("View Events")
+                    Text("Events")
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -85,7 +85,7 @@ fun welcomeScreen(
                     onClick = onNavigateToNotices,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Text("View Notices")
+                    Text("Notices")
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))

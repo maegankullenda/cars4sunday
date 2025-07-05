@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -39,7 +38,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -55,18 +53,20 @@ private const val DEFAULT_MINUTE = 0
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun createEventScreen(
-    onEventCreated: () -> Unit,
+fun editEventScreen(
+    eventId: String,
+    onEventUpdated: () -> Unit,
     onNavigateBack: () -> Unit,
-    viewModel: CreateEventViewModel = hiltViewModel(),
+    viewModel: EditEventViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val event by viewModel.event.collectAsStateWithLifecycle()
+
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var selectedDate by remember { mutableStateOf(LocalDate.now().plusDays(DEFAULT_DAYS_AHEAD)) }
     var selectedTime by remember { mutableStateOf(LocalTime.of(DEFAULT_HOUR, DEFAULT_MINUTE)) }
     var location by remember { mutableStateOf("") }
-    var attendeeLimit by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     var showDatePicker by remember { mutableStateOf(false) }
@@ -75,13 +75,29 @@ fun createEventScreen(
     val dateFormatter = DateTimeFormatter.ofPattern("MMM dd, yyyy")
     val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
 
+    // Load event data when screen is created
+    LaunchedEffect(eventId) {
+        viewModel.loadEvent(eventId)
+    }
+
+    // Update UI when event is loaded
+    LaunchedEffect(event) {
+        event?.let { currentEvent ->
+            title = currentEvent.title
+            description = currentEvent.description
+            selectedDate = currentEvent.date.toLocalDate()
+            selectedTime = currentEvent.date.toLocalTime()
+            location = currentEvent.location
+        }
+    }
+
     LaunchedEffect(uiState) {
         when (val state = uiState) {
-            is CreateEventUiState.Success -> {
+            is EditEventUiState.Success -> {
                 viewModel.resetState()
-                onEventCreated()
+                onEventUpdated()
             }
-            is CreateEventUiState.Error -> {
+            is EditEventUiState.Error -> {
                 errorMessage = state.message
                 viewModel.resetState()
             }
@@ -92,7 +108,7 @@ fun createEventScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Create Event") },
+                title = { Text("Edit Event") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -118,20 +134,10 @@ fun createEventScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
-                value = location,
-                onValueChange = { location = it },
-                label = { Text("Location") },
+                value = description,
+                onValueChange = { description = it },
+                label = { Text("Description") },
                 modifier = Modifier.fillMaxWidth(),
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(
-                value = attendeeLimit,
-                onValueChange = { attendeeLimit = it },
-                label = { Text("Attendee Limit (Optional)") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number,
-                ),
             )
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -159,23 +165,22 @@ fun createEventScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
-                value = description,
-                onValueChange = { description = it },
-                label = { Text("Description") },
+                value = location,
+                onValueChange = { location = it },
+                label = { Text("Location") },
                 modifier = Modifier.fillMaxWidth(),
             )
             Spacer(modifier = Modifier.height(16.dp))
             Button(
                 onClick = {
                     val eventDateTime = LocalDateTime.of(selectedDate, selectedTime)
-                    val attendeeLimitInt = attendeeLimit.toIntOrNull()
-                    viewModel.createEvent(title, description, eventDateTime, location, attendeeLimitInt)
+                    viewModel.updateEvent(title, description, eventDateTime, location)
                 },
-                enabled = uiState !is CreateEventUiState.Loading,
+                enabled = uiState !is EditEventUiState.Loading,
             ) {
-                Text("Create Event")
+                Text("Update Event")
             }
-            if (uiState is CreateEventUiState.Loading) {
+            if (uiState is EditEventUiState.Loading) {
                 Spacer(modifier = Modifier.height(8.dp))
                 CircularProgressIndicator()
             }

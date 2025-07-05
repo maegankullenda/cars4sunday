@@ -2,12 +2,15 @@ package com.maegankullenda.carsonsunday.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.maegankullenda.carsonsunday.ui.auth.loginScreen
 import com.maegankullenda.carsonsunday.ui.auth.registerScreen
 import com.maegankullenda.carsonsunday.ui.events.createEventScreen
 import com.maegankullenda.carsonsunday.ui.events.eventsScreen
+import com.maegankullenda.carsonsunday.ui.events.respondentsScreen
 import com.maegankullenda.carsonsunday.ui.notices.createNoticeScreen
 import com.maegankullenda.carsonsunday.ui.notices.noticesScreen
 import com.maegankullenda.carsonsunday.ui.welcome.welcomeScreen
@@ -70,6 +73,9 @@ fun appNavigation(navController: NavHostController) {
                 onNavigateBack = {
                     navController.popBackStack()
                 },
+                onNavigateToEventDetail = { eventId ->
+                    navController.navigate(Screen.EventDetail.createRoute(eventId))
+                },
             )
         }
 
@@ -103,6 +109,48 @@ fun appNavigation(navController: NavHostController) {
                 onNavigateBack = {
                     navController.popBackStack()
                 },
+            )
+        }
+
+        composable(
+            route = Screen.EventDetail.route,
+            arguments = listOf(navArgument("eventId") { type = NavType.StringType }),
+        ) { backStackEntry ->
+            val eventId = backStackEntry.arguments?.getString("eventId") ?: ""
+            com.maegankullenda.carsonsunday.ui.events.eventDetailScreen(
+                eventId = eventId,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToEditEvent = { editEventId ->
+                    navController.navigate(Screen.EditEvent.createRoute(editEventId))
+                },
+                onNavigateToRespondents = { respondentsEventId ->
+                    navController.navigate(Screen.Respondents.createRoute(respondentsEventId))
+                },
+            )
+        }
+
+        composable(
+            route = Screen.EditEvent.route,
+            arguments = listOf(navArgument("eventId") { type = NavType.StringType }),
+        ) { backStackEntry ->
+            val eventId = backStackEntry.arguments?.getString("eventId") ?: ""
+            com.maegankullenda.carsonsunday.ui.events.editEventScreen(
+                eventId = eventId,
+                onEventUpdated = {
+                    navController.popBackStack()
+                },
+                onNavigateBack = { navController.popBackStack() },
+            )
+        }
+
+        composable(
+            route = Screen.Respondents.route,
+            arguments = listOf(navArgument("eventId") { type = NavType.StringType }),
+        ) { backStackEntry ->
+            val eventId = backStackEntry.arguments?.getString("eventId") ?: ""
+            respondentsScreen(
+                eventId = eventId,
+                onNavigateBack = { navController.popBackStack() },
             )
         }
     }
