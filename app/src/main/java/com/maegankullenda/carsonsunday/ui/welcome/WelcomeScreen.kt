@@ -28,6 +28,7 @@ fun welcomeScreen(
     onNavigateToLogin: () -> Unit,
     onNavigateToEvents: () -> Unit,
     onNavigateToNotices: () -> Unit,
+    onNavigateToSettings: () -> Unit,
     viewModel: WelcomeViewModel = hiltViewModel(),
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
@@ -86,6 +87,15 @@ fun welcomeScreen(
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text("Notices")
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(
+                    onClick = onNavigateToSettings,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text("Settings")
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))

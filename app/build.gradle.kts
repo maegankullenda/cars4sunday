@@ -7,6 +7,7 @@ plugins {
     id("org.jlleitschuh.gradle.ktlint") version "11.6.1"
     id("io.gitlab.arturbosch.detekt") version "1.23.5"
     alias(libs.plugins.firebase.crashlytics)
+    alias(libs.plugins.firebase.services)
 }
 
 android {
@@ -119,6 +120,8 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.firestore)
+    implementation(libs.firebase.auth)
 
     // Testing
     testImplementation(libs.junit)

@@ -1,33 +1,31 @@
 package com.maegankullenda.carsonsunday.data.repository.impl
 
-import com.maegankullenda.carsonsunday.data.source.local.UserLocalDataSource
+import com.maegankullenda.carsonsunday.data.source.DataSourceManager
 import com.maegankullenda.carsonsunday.domain.model.User
 import com.maegankullenda.carsonsunday.domain.model.UserRole
 import com.maegankullenda.carsonsunday.domain.repository.AuthRepository
 import kotlinx.coroutines.flow.Flow
-import java.io.IOException
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class AuthRepositoryImpl @Inject constructor(
-    private val userLocalDataSource: UserLocalDataSource,
+    private val dataSourceManager: DataSourceManager,
 ) : AuthRepository {
 
     override suspend fun login(username: String, password: String): Result<User> {
         return try {
-            val user = userLocalDataSource.getUserByUsername(username)
+            val userDataSource = dataSourceManager.getUserDataSource()
+            val user = userDataSource.getUserByUsername(username)
             if (user != null && user.password == password) {
-                // Set the current user when login is successful
-                userLocalDataSource.saveUser(user)
+                // Set the current user in local storage for session management
+                dataSourceManager.userLocalDataSource.saveUser(user)
                 Result.success(user)
             } else {
                 Result.failure(Exception("Invalid username or password"))
             }
-        } catch (e: IOException) {
-            Result.failure(e)
-        } catch (e: IllegalArgumentException) {
+        } catch (e: Exception) {
             Result.failure(e)
         }
     }
@@ -41,7 +39,8 @@ class AuthRepositoryImpl @Inject constructor(
         role: UserRole,
     ): Result<User> {
         return try {
-            val existingUser = userLocalDataSource.getUserByUsername(username)
+            val userDataSource = dataSourceManager.getUserDataSource()
+            val existingUser = userDataSource.getUserByUsername(username)
             if (existingUser != null) {
                 return Result.failure(Exception("Username already exists"))
             }
@@ -56,49 +55,58 @@ class AuthRepositoryImpl @Inject constructor(
                 role = role,
             )
 
-            userLocalDataSource.saveUser(newUser)
+            userDataSource.saveUser(newUser)
+            // Also save to local storage for session management
+            dataSourceManager.userLocalDataSource.saveUser(newUser)
             Result.success(newUser)
-        } catch (e: IOException) {
-            Result.failure(e)
-        } catch (e: IllegalArgumentException) {
+        } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
     override suspend fun getCurrentUser(): User? {
-        return userLocalDataSource.getUser()
+        val currentUserId = getCurrentUserId()
+        if (currentUserId == null) return null
+        val userDataSource = dataSourceManager.getUserDataSource()
+        return userDataSource.getUserById(currentUserId)
     }
 
     override suspend fun logout() {
-        userLocalDataSource.clearUser()
+        // Clear current user from local storage (always use local for session management)
+        dataSourceManager.userLocalDataSource.clearUser()
     }
 
     override fun isUserLoggedIn(): Flow<Boolean> {
-        return userLocalDataSource.isUserLoggedIn
+        return dataSourceManager.userLocalDataSource.isUserLoggedIn
     }
 
     override suspend fun makeUserAdmin(username: String): Result<User> {
         return try {
-            val user = userLocalDataSource.getUserByUsername(username)
+            val userDataSource = dataSourceManager.getUserDataSource()
+            val user = userDataSource.getUserByUsername(username)
             if (user == null) {
                 return Result.failure(Exception("User not found"))
             }
 
             val adminUser = user.copy(role = UserRole.ADMIN)
-            userLocalDataSource.saveUser(adminUser)
+            userDataSource.updateUser(adminUser)
             Result.success(adminUser)
-        } catch (e: IOException) {
-            Result.failure(e)
-        } catch (e: IllegalArgumentException) {
+        } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
     override suspend fun getAllUsers(): List<User> {
-        return userLocalDataSource.getAllUsers()
+        val userDataSource = dataSourceManager.getUserDataSource()
+        return userDataSource.getAllUsers()
     }
 
     override suspend fun getUserById(userId: String): User? {
-        return userLocalDataSource.getUserById(userId)
+        val userDataSource = dataSourceManager.getUserDataSource()
+        return userDataSource.getUserById(userId)
+    }
+
+    private fun getCurrentUserId(): String? {
+        return dataSourceManager.userLocalDataSource.getUser()?.id
     }
 }

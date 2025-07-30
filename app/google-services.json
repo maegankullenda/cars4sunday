@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "966644520918",
+    "project_id": "carsonsunday",
+    "storage_bucket": "carsonsunday.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:966644520918:android:845e710a732591c86eb677",
+        "android_client_info": {
+          "package_name": "com.maegankullenda.carsonsunday"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDsV5ICogEYeLBITAmRtjsI_RqiwmM4LWA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

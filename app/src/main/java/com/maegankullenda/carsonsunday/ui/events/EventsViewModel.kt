@@ -38,6 +38,8 @@ class EventsViewModel @Inject constructor(
     val selectedTab: StateFlow<EventStatus> = _selectedTab.asStateFlow()
 
     private val _allEvents = MutableStateFlow<List<Event>>(emptyList())
+    private val _attendanceStatus = MutableStateFlow<Map<String, Boolean>>(emptyMap())
+    val attendanceStatus: StateFlow<Map<String, Boolean>> = _attendanceStatus.asStateFlow()
 
     init {
         loadCurrentUser()
@@ -47,6 +49,8 @@ class EventsViewModel @Inject constructor(
     private fun loadCurrentUser() {
         viewModelScope.launch {
             _currentUser.value = authRepository.getCurrentUser()
+            // After loading the current user, update attendance status for all events
+            updateAttendanceStatusForAllEvents()
         }
     }
 
@@ -57,6 +61,8 @@ class EventsViewModel @Inject constructor(
                 getEventsUseCase().collect { events ->
                     _allEvents.value = events
                     updateEventsForSelectedTab()
+                    // Update attendance status for all events after loading
+                    updateAttendanceStatusForAllEvents()
                 }
             } catch (e: IOException) {
                 _uiState.value = EventsUiState.Error("Failed to load events: ${e.message}")
@@ -82,6 +88,50 @@ class EventsViewModel @Inject constructor(
                     .sortedByDescending { it.date }
         }
         _uiState.value = EventsUiState.Success(filteredEvents)
+        updateAttendanceStatus(filteredEvents)
+    }
+
+    private fun updateAttendanceStatus(events: List<Event>) {
+        viewModelScope.launch {
+            val currentUser = _currentUser.value
+            if (currentUser != null) {
+                val newAttendanceStatus = _attendanceStatus.value.toMutableMap()
+                events.forEach { event ->
+                    // Only update if we don't already have a cached value for this event
+                    // This preserves manual updates from attendEvent/leaveEvent
+                    if (!newAttendanceStatus.containsKey(event.id)) {
+                        try {
+                            newAttendanceStatus[event.id] = eventRepository.isUserAttending(event.id, currentUser.id)
+                        } catch (e: Exception) {
+                            // If we can't get the attendance status, default to false
+                            newAttendanceStatus[event.id] = false
+                        }
+                    }
+                }
+                _attendanceStatus.value = newAttendanceStatus
+            }
+        }
+    }
+
+    private fun updateAttendanceStatusForAllEvents() {
+        viewModelScope.launch {
+            val currentUser = _currentUser.value
+            if (currentUser != null) {
+                val newAttendanceStatus = _attendanceStatus.value.toMutableMap()
+                _allEvents.value.forEach { event ->
+                    // Only update if we don't already have a cached value for this event
+                    // This preserves manual updates from attendEvent/leaveEvent
+                    if (!newAttendanceStatus.containsKey(event.id)) {
+                        try {
+                            newAttendanceStatus[event.id] = eventRepository.isUserAttending(event.id, currentUser.id)
+                        } catch (e: Exception) {
+                            newAttendanceStatus[event.id] = false
+                        }
+                    }
+                }
+                _attendanceStatus.value = newAttendanceStatus
+            }
+        }
     }
 
     fun selectTab(status: EventStatus) {
@@ -97,8 +147,8 @@ class EventsViewModel @Inject constructor(
         loadEvents()
     }
 
-    fun getEventById(eventId: String): Event? {
-        return _allEvents.value.find { it.id == eventId }
+    suspend fun getEventById(eventId: String): Event? {
+        return eventRepository.getEventById(eventId)
     }
 
     fun cancelEvent(eventId: String) {
@@ -135,7 +185,14 @@ class EventsViewModel @Inject constructor(
     fun attendEvent(eventId: String) {
         viewModelScope.launch {
             attendEventUseCase(eventId).onSuccess { updatedEvent ->
-                // Refresh events after successful attendance
+                // Update attendance status for this specific event immediately
+                val currentUser = _currentUser.value
+                if (currentUser != null) {
+                    val newStatus = _attendanceStatus.value.toMutableMap()
+                    newStatus[eventId] = true
+                    _attendanceStatus.value = newStatus
+                }
+                // Refresh events to get the updated event data
                 loadEvents()
             }.onFailure { exception ->
                 // Handle error if needed
@@ -147,7 +204,14 @@ class EventsViewModel @Inject constructor(
     fun leaveEvent(eventId: String) {
         viewModelScope.launch {
             leaveEventUseCase(eventId).onSuccess { updatedEvent ->
-                // Refresh events after successful leave
+                // Update attendance status for this specific event immediately
+                val currentUser = _currentUser.value
+                if (currentUser != null) {
+                    val newStatus = _attendanceStatus.value.toMutableMap()
+                    newStatus[eventId] = false
+                    _attendanceStatus.value = newStatus
+                }
+                // Refresh events to get the updated event data
                 loadEvents()
             }.onFailure { exception ->
                 // Handle error if needed
@@ -157,9 +221,14 @@ class EventsViewModel @Inject constructor(
     }
 
     fun isUserAttending(eventId: String): Boolean {
-        val currentUser = _currentUser.value
-        val event = _allEvents.value.find { it.id == eventId }
-        return currentUser != null && event?.attendees?.contains(currentUser.id) == true
+        return _attendanceStatus.value[eventId] ?: false
+    }
+
+    // Test helper method
+    fun setAttendanceStatus(eventId: String, isAttending: Boolean) {
+        val newStatus = _attendanceStatus.value.toMutableMap()
+        newStatus[eventId] = isAttending
+        _attendanceStatus.value = newStatus
     }
 
     suspend fun getRespondentsForEvent(eventId: String): List<User> {

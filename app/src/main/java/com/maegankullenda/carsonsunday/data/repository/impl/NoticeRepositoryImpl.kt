@@ -1,60 +1,56 @@
 package com.maegankullenda.carsonsunday.data.repository.impl
 
-import com.maegankullenda.carsonsunday.data.source.local.NoticeLocalDataSource
+import com.maegankullenda.carsonsunday.data.source.DataSourceManager
 import com.maegankullenda.carsonsunday.domain.model.Notice
 import com.maegankullenda.carsonsunday.domain.repository.NoticeRepository
 import kotlinx.coroutines.flow.Flow
-import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class NoticeRepositoryImpl @Inject constructor(
-    private val noticeLocalDataSource: NoticeLocalDataSource,
+    private val dataSourceManager: DataSourceManager,
 ) : NoticeRepository {
 
     override suspend fun createNotice(notice: Notice): Result<Notice> {
         return try {
-            noticeLocalDataSource.saveNotice(notice)
-            Result.success(notice)
-        } catch (e: IOException) {
-            Result.failure(e)
-        } catch (e: IllegalArgumentException) {
+            val noticeDataSource = dataSourceManager.getNoticeDataSource()
+            noticeDataSource.saveNotice(notice)
+        } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
     override fun getNotices(): Flow<List<Notice>> {
-        return noticeLocalDataSource.notices
+        val noticeDataSource = dataSourceManager.getNoticeDataSource()
+        return noticeDataSource.observeNotices()
     }
 
     override suspend fun getNoticeById(id: String): Notice? {
-        return noticeLocalDataSource.getNoticeById(id)
+        val noticeDataSource = dataSourceManager.getNoticeDataSource()
+        return noticeDataSource.getNoticeById(id)
     }
 
     override suspend fun updateNotice(notice: Notice): Result<Notice> {
         return try {
-            noticeLocalDataSource.updateNotice(notice)
-            Result.success(notice)
-        } catch (e: IOException) {
-            Result.failure(e)
-        } catch (e: IllegalArgumentException) {
+            val noticeDataSource = dataSourceManager.getNoticeDataSource()
+            noticeDataSource.updateNotice(notice)
+        } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
     override suspend fun deleteNotice(id: String): Result<Unit> {
         return try {
-            noticeLocalDataSource.deleteNotice(id)
-            Result.success(Unit)
-        } catch (e: IOException) {
-            Result.failure(e)
-        } catch (e: IllegalArgumentException) {
+            val noticeDataSource = dataSourceManager.getNoticeDataSource()
+            noticeDataSource.deleteNotice(id)
+        } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
     override fun getNoticesByCreator(creatorId: String): Flow<List<Notice>> {
-        return noticeLocalDataSource.notices
+        val noticeDataSource = dataSourceManager.getNoticeDataSource()
+        return noticeDataSource.observeNotices()
     }
 }

@@ -166,7 +166,8 @@ private fun eventCard(
 ) {
     val dateFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM)
     val currentUser by viewModel.currentUser.collectAsStateWithLifecycle()
-    val isUserAttending = viewModel.isUserAttending(event.id)
+    val attendanceStatus by viewModel.attendanceStatus.collectAsStateWithLifecycle()
+    val isUserAttending = attendanceStatus[event.id] ?: false
 
     Card(
         modifier = Modifier

@@ -13,6 +13,7 @@ import com.maegankullenda.carsonsunday.ui.events.eventsScreen
 import com.maegankullenda.carsonsunday.ui.events.respondentsScreen
 import com.maegankullenda.carsonsunday.ui.notices.createNoticeScreen
 import com.maegankullenda.carsonsunday.ui.notices.noticesScreen
+import com.maegankullenda.carsonsunday.ui.settings.settingsScreen
 import com.maegankullenda.carsonsunday.ui.welcome.welcomeScreen
 
 @Composable
@@ -61,6 +62,9 @@ fun appNavigation(navController: NavHostController) {
                 },
                 onNavigateToNotices = {
                     navController.navigate(Screen.Notices.route)
+                },
+                onNavigateToSettings = {
+                    navController.navigate(Screen.Settings.route)
                 },
             )
         }
@@ -151,6 +155,14 @@ fun appNavigation(navController: NavHostController) {
             respondentsScreen(
                 eventId = eventId,
                 onNavigateBack = { navController.popBackStack() },
+            )
+        }
+
+        composable(Screen.Settings.route) {
+            settingsScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
             )
         }
     }
