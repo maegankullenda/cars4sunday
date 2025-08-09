@@ -1,6 +1,7 @@
 package com.maegankullenda.carsonsunday.data.source
 
 import com.maegankullenda.carsonsunday.data.source.local.EventLocalDataSource
+import com.maegankullenda.carsonsunday.data.source.local.EventOfflineDataSource
 import com.maegankullenda.carsonsunday.data.source.local.NoticeLocalDataSource
 import com.maegankullenda.carsonsunday.data.source.local.UserLocalDataSource
 import com.maegankullenda.carsonsunday.data.source.remote.EventRemoteDataSource
@@ -13,12 +14,13 @@ import javax.inject.Singleton
 class DataSourceManager @Inject constructor(
     val userLocalDataSource: UserLocalDataSource,
     val eventLocalDataSource: EventLocalDataSource,
+    val eventOfflineDataSource: EventOfflineDataSource,
     val noticeLocalDataSource: NoticeLocalDataSource,
     val userRemoteDataSource: UserRemoteDataSource,
     val eventRemoteDataSource: EventRemoteDataSource,
     val noticeRemoteDataSource: NoticeRemoteDataSource,
 ) {
-    private var useRemoteStorage = true // Default to Firebase remote storage
+    private var useRemoteStorage = true // Default to Firebase remote storage for all data
 
     fun setUseRemoteStorage(useRemote: Boolean) {
         useRemoteStorage = useRemote
@@ -26,36 +28,104 @@ class DataSourceManager @Inject constructor(
 
     fun isUsingRemoteStorage(): Boolean = useRemoteStorage
 
+    // Check if Firebase is available
+    suspend fun isFirebaseAvailable(): Boolean {
+        return try {
+            // Try a simple Firebase operation to check connectivity
+            userRemoteDataSource.getAllUsers()
+            true
+        } catch (e: Exception) {
+            println("DEBUG: Firebase not available: ${e.message}")
+            false
+        }
+    }
+
+    // Force local storage when Firebase is unavailable
+    suspend fun ensureLocalStorageWhenFirebaseUnavailable() {
+        if (useRemoteStorage && !isFirebaseAvailable()) {
+            println("DEBUG: Firebase unavailable, switching to local storage")
+            useRemoteStorage = false
+        }
+    }
+
     // User data source
     fun getUserDataSource(): UserDataSource {
+        println("DEBUG: DataSourceManager.getUserDataSource() - useRemoteStorage: $useRemoteStorage")
         return if (useRemoteStorage) {
+            // Try remote first, but fallback to local if Firebase is unavailable
             object : UserDataSource {
                 override suspend fun saveUser(user: com.maegankullenda.carsonsunday.domain.model.User): Result<com.maegankullenda.carsonsunday.domain.model.User> {
-                    return userRemoteDataSource.saveUser(user)
+                    return try {
+                        println("DEBUG: Attempting to save user to Firebase")
+                        userRemoteDataSource.saveUser(user)
+                    } catch (e: Exception) {
+                        println("DEBUG: Firebase unavailable for saveUser, falling back to local storage: ${e.message}")
+                        userLocalDataSource.saveUser(user)
+                        Result.success(user)
+                    }
                 }
 
                 override suspend fun getUserById(userId: String): com.maegankullenda.carsonsunday.domain.model.User? {
-                    return userRemoteDataSource.getUserById(userId)
+                    return try {
+                        println("DEBUG: Attempting to get user by ID from Firebase")
+                        userRemoteDataSource.getUserById(userId)
+                    } catch (e: Exception) {
+                        println("DEBUG: Firebase unavailable for getUserById, falling back to local storage: ${e.message}")
+                        userLocalDataSource.getUserById(userId)
+                    }
                 }
 
                 override suspend fun getUserByUsername(username: String): com.maegankullenda.carsonsunday.domain.model.User? {
-                    return userRemoteDataSource.getUserByUsername(username)
+                    return try {
+                        println("DEBUG: Attempting to get user by username from Firebase")
+                        userRemoteDataSource.getUserByUsername(username)
+                    } catch (e: Exception) {
+                        println("DEBUG: Firebase unavailable for getUserByUsername, falling back to local storage: ${e.message}")
+                        userLocalDataSource.getUserByUsername(username)
+                    }
                 }
 
                 override suspend fun getAllUsers(): List<com.maegankullenda.carsonsunday.domain.model.User> {
-                    return userRemoteDataSource.getAllUsers()
+                    return try {
+                        println("DEBUG: Attempting to get all users from Firebase")
+                        userRemoteDataSource.getAllUsers()
+                    } catch (e: Exception) {
+                        println("DEBUG: Firebase unavailable for getAllUsers, falling back to local storage: ${e.message}")
+                        userLocalDataSource.getAllUsers()
+                    }
                 }
 
                 override suspend fun updateUser(user: com.maegankullenda.carsonsunday.domain.model.User): Result<com.maegankullenda.carsonsunday.domain.model.User> {
-                    return userRemoteDataSource.updateUser(user)
+                    return try {
+                        println("DEBUG: Attempting to update user in Firebase")
+                        userRemoteDataSource.updateUser(user)
+                    } catch (e: Exception) {
+                        println("DEBUG: Firebase unavailable for updateUser, falling back to local storage: ${e.message}")
+                        userLocalDataSource.saveUser(user)
+                        Result.success(user)
+                    }
                 }
 
                 override suspend fun deleteUser(userId: String): Result<Unit> {
-                    return userRemoteDataSource.deleteUser(userId)
+                    return try {
+                        println("DEBUG: Attempting to delete user from Firebase")
+                        userRemoteDataSource.deleteUser(userId)
+                    } catch (e: Exception) {
+                        println("DEBUG: Firebase unavailable for deleteUser, falling back to local storage: ${e.message}")
+                        Result.success(Unit)
+                    }
                 }
 
                 override fun observeUsers(): kotlinx.coroutines.flow.Flow<List<com.maegankullenda.carsonsunday.domain.model.User>> {
-                    return userRemoteDataSource.observeUsers()
+                    return try {
+                        println("DEBUG: Attempting to observe users from Firebase")
+                        userRemoteDataSource.observeUsers()
+                    } catch (e: Exception) {
+                        println("DEBUG: Firebase unavailable for observeUsers, falling back to local storage: ${e.message}")
+                        kotlinx.coroutines.flow.flow {
+                            emit(userLocalDataSource.getAllUsers())
+                        }
+                    }
                 }
             }
         } else {
@@ -321,4 +391,4 @@ interface NoticeDataSource {
     suspend fun updateNotice(notice: com.maegankullenda.carsonsunday.domain.model.Notice): Result<com.maegankullenda.carsonsunday.domain.model.Notice>
     suspend fun deleteNotice(noticeId: String): Result<Unit>
     fun observeNotices(): kotlinx.coroutines.flow.Flow<List<com.maegankullenda.carsonsunday.domain.model.Notice>>
-} 
+}

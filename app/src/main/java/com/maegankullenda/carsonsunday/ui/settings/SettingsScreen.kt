@@ -8,8 +8,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -22,9 +26,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -39,7 +40,6 @@ fun settingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    var useRemoteStorage by remember { mutableStateOf(uiState.isUsingRemoteStorage) }
 
     Scaffold(
         topBar = {
@@ -57,6 +57,7 @@ fun settingsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
@@ -78,7 +79,7 @@ fun settingsScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Spacer(modifier = Modifier.height(16.dp))
-                    
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -86,12 +87,12 @@ fun settingsScreen(
                     ) {
                         Column {
                             Text(
-                                text = if (useRemoteStorage) "Firebase (Remote)" else "Local Storage",
+                                text = if (uiState.isUsingRemoteStorage) "Firebase (Remote)" else "Local Storage",
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.Medium,
                             )
                             Text(
-                                text = if (useRemoteStorage) {
+                                text = if (uiState.isUsingRemoteStorage) {
                                     "Data is stored in the cloud and shared across devices"
                                 } else {
                                     "Data is stored locally on this device only"
@@ -101,17 +102,32 @@ fun settingsScreen(
                             )
                         }
                         Switch(
-                            checked = useRemoteStorage,
+                            checked = uiState.isUsingRemoteStorage,
                             onCheckedChange = { isRemote ->
-                                useRemoteStorage = isRemote
                                 viewModel.setUseRemoteStorage(isRemote)
                             },
                         )
                     }
+                    
+                    // Debug: Force Firebase Storage
+                    if (!uiState.isUsingRemoteStorage) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Button(
+                            onClick = {
+                                viewModel.setUseRemoteStorage(true)
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.secondary
+                            ),
+                        ) {
+                            Text("🔄 Force Firebase Storage", color = MaterialTheme.colorScheme.onSecondary)
+                        }
+                    }
                 }
             }
 
-            if (useRemoteStorage) {
+            if (uiState.isUsingRemoteStorage) {
                 Card(
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                 ) {
@@ -144,4 +160,4 @@ fun settingsScreen(
             }
         }
     }
-} 
+}

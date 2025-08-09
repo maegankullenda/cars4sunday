@@ -16,16 +16,28 @@ class AuthRepositoryImpl @Inject constructor(
 
     override suspend fun login(username: String, password: String): Result<User> {
         return try {
+            println("DEBUG: Login attempt for username: $username")
+            println("DEBUG: Using remote storage: ${dataSourceManager.isUsingRemoteStorage()}")
+            
+            // Check if Firebase is available and switch to local if not
+            dataSourceManager.ensureLocalStorageWhenFirebaseUnavailable()
+            
             val userDataSource = dataSourceManager.getUserDataSource()
             val user = userDataSource.getUserByUsername(username)
+            
+            println("DEBUG: Found user: $user")
+            
             if (user != null && user.password == password) {
                 // Set the current user in local storage for session management
                 dataSourceManager.userLocalDataSource.saveUser(user)
+                println("DEBUG: Login successful for user: ${user.username}")
                 Result.success(user)
             } else {
+                println("DEBUG: Login failed - user not found or password incorrect")
                 Result.failure(Exception("Invalid username or password"))
             }
         } catch (e: Exception) {
+            println("DEBUG: Login exception: ${e.message}")
             Result.failure(e)
         }
     }
@@ -39,6 +51,9 @@ class AuthRepositoryImpl @Inject constructor(
         role: UserRole,
     ): Result<User> {
         return try {
+            // Check if Firebase is available and switch to local if not
+            dataSourceManager.ensureLocalStorageWhenFirebaseUnavailable()
+            
             val userDataSource = dataSourceManager.getUserDataSource()
             val existingUser = userDataSource.getUserByUsername(username)
             if (existingUser != null) {

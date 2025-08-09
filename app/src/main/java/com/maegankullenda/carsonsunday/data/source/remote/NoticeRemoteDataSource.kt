@@ -29,7 +29,7 @@ class NoticeRemoteDataSource @Inject constructor(
                 "createdAt" to notice.createdAt.format(dateFormatter),
                 "isActive" to notice.isActive,
             )
-            
+
             noticesCollection.document(notice.id).set(noticeData).await()
             Result.success(notice)
         } catch (e: Exception) {
@@ -79,7 +79,7 @@ class NoticeRemoteDataSource @Inject constructor(
                 "createdAt" to notice.createdAt.format(dateFormatter),
                 "isActive" to notice.isActive,
             )
-            
+
             noticesCollection.document(notice.id).update(noticeData).await()
             Result.success(notice)
         } catch (e: Exception) {
@@ -102,11 +102,11 @@ class NoticeRemoteDataSource @Inject constructor(
                 close(error)
                 return@addSnapshotListener
             }
-            
+
             val notices = snapshot?.documents?.mapNotNull { it.toNotice() } ?: emptyList()
             trySend(notices)
         }
-        
+
         awaitClose { listener.remove() }
     }
 
@@ -119,7 +119,7 @@ class NoticeRemoteDataSource @Inject constructor(
             val createdBy = getString("createdBy") ?: return null
             val createdAtString = getString("createdAt") ?: return null
             val isActive = getBoolean("isActive") ?: return null
-            
+
             Notice(
                 id = id,
                 title = title,
@@ -138,4 +138,4 @@ class NoticeRemoteDataSource @Inject constructor(
         private const val COLLECTION_NOTICES = "notices"
         private val dateFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
     }
-} 
+}

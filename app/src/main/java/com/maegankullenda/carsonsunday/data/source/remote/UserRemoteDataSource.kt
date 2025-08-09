@@ -1,7 +1,6 @@
 package com.maegankullenda.carsonsunday.data.source.remote
 
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
 import com.maegankullenda.carsonsunday.domain.model.User
 import com.maegankullenda.carsonsunday.domain.model.UserRole
 import kotlinx.coroutines.channels.awaitClose
@@ -28,10 +27,11 @@ class UserRemoteDataSource @Inject constructor(
                 "mobileNumber" to user.mobileNumber,
                 "role" to user.role.name,
             )
-            
+
             usersCollection.document(user.id).set(userData).await()
             Result.success(user)
         } catch (e: Exception) {
+            println("DEBUG: UserRemoteDataSource.saveUser() - Firebase error: ${e.message}")
             Result.failure(e)
         }
     }
@@ -45,16 +45,21 @@ class UserRemoteDataSource @Inject constructor(
                 null
             }
         } catch (e: Exception) {
-            null
+            println("DEBUG: UserRemoteDataSource.getUserById() - Firebase error: ${e.message}")
+            throw e // Re-throw to trigger fallback
         }
     }
 
     suspend fun getUserByUsername(username: String): User? {
         return try {
+            println("DEBUG: UserRemoteDataSource.getUserByUsername() - searching for: $username")
             val query = usersCollection.whereEqualTo("username", username).get().await()
-            query.documents.firstOrNull()?.toUser()
+            val user = query.documents.firstOrNull()?.toUser()
+            println("DEBUG: UserRemoteDataSource.getUserByUsername() - found user: $user")
+            user
         } catch (e: Exception) {
-            null
+            println("DEBUG: UserRemoteDataSource.getUserByUsername() - Firebase error: ${e.message}")
+            throw e // Re-throw to trigger fallback
         }
     }
 
@@ -63,7 +68,8 @@ class UserRemoteDataSource @Inject constructor(
             val query = usersCollection.get().await()
             query.documents.mapNotNull { it.toUser() }
         } catch (e: Exception) {
-            emptyList()
+            println("DEBUG: UserRemoteDataSource.getAllUsers() - Firebase error: ${e.message}")
+            throw e // Re-throw to trigger fallback
         }
     }
 
@@ -78,10 +84,11 @@ class UserRemoteDataSource @Inject constructor(
                 "mobileNumber" to user.mobileNumber,
                 "role" to user.role.name,
             )
-            
+
             usersCollection.document(user.id).update(userData).await()
             Result.success(user)
         } catch (e: Exception) {
+            println("DEBUG: UserRemoteDataSource.updateUser() - Firebase error: ${e.message}")
             Result.failure(e)
         }
     }
@@ -91,6 +98,7 @@ class UserRemoteDataSource @Inject constructor(
             usersCollection.document(userId).delete().await()
             Result.success(Unit)
         } catch (e: Exception) {
+            println("DEBUG: UserRemoteDataSource.deleteUser() - Firebase error: ${e.message}")
             Result.failure(e)
         }
     }
@@ -98,14 +106,15 @@ class UserRemoteDataSource @Inject constructor(
     fun observeUsers(): Flow<List<User>> = callbackFlow {
         val listener = usersCollection.addSnapshotListener { snapshot, error ->
             if (error != null) {
+                println("DEBUG: UserRemoteDataSource.observeUsers() - Firebase error: ${error.message}")
                 close(error)
                 return@addSnapshotListener
             }
-            
+
             val users = snapshot?.documents?.mapNotNull { it.toUser() } ?: emptyList()
             trySend(users)
         }
-        
+
         awaitClose { listener.remove() }
     }
 
@@ -118,7 +127,7 @@ class UserRemoteDataSource @Inject constructor(
             val surname = getString("surname") ?: return null
             val mobileNumber = getString("mobileNumber") ?: return null
             val roleString = getString("role") ?: return null
-            
+
             User(
                 id = id,
                 username = username,
@@ -136,4 +145,4 @@ class UserRemoteDataSource @Inject constructor(
     companion object {
         private const val COLLECTION_USERS = "users"
     }
-} 
+}

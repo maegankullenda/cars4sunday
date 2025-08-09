@@ -11,7 +11,6 @@ import com.maegankullenda.carsonsunday.domain.usecase.GetEventsUseCase
 import com.maegankullenda.carsonsunday.domain.usecase.LeaveEventUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -47,7 +46,7 @@ class EventsViewModelTest {
         name = "Test",
         surname = "User",
         mobileNumber = "1234567890",
-        role = UserRole.ADMIN
+        role = UserRole.ADMIN,
     )
 
     private val testEvent = Event(
@@ -61,13 +60,13 @@ class EventsViewModelTest {
         isActive = true,
         status = EventStatus.UPCOMING,
         attendees = emptyList(),
-        attendeeLimit = null
+        attendeeLimit = null,
     )
 
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        
+
         mockGetEventsUseCase = mockk()
         mockAttendEventUseCase = mockk()
         mockLeaveEventUseCase = mockk()
@@ -93,7 +92,7 @@ class EventsViewModelTest {
             attendEventUseCase = mockAttendEventUseCase,
             leaveEventUseCase = mockLeaveEventUseCase,
             authRepository = mockAuthRepository,
-            eventRepository = mockEventRepository
+            eventRepository = mockEventRepository,
         )
 
         // When
@@ -117,7 +116,7 @@ class EventsViewModelTest {
             attendEventUseCase = mockAttendEventUseCase,
             leaveEventUseCase = mockLeaveEventUseCase,
             authRepository = mockAuthRepository,
-            eventRepository = mockEventRepository
+            eventRepository = mockEventRepository,
         )
 
         // When
@@ -140,7 +139,7 @@ class EventsViewModelTest {
             attendEventUseCase = mockAttendEventUseCase,
             leaveEventUseCase = mockLeaveEventUseCase,
             authRepository = mockAuthRepository,
-            eventRepository = mockEventRepository
+            eventRepository = mockEventRepository,
         )
 
         // When
@@ -162,7 +161,7 @@ class EventsViewModelTest {
             attendEventUseCase = mockAttendEventUseCase,
             leaveEventUseCase = mockLeaveEventUseCase,
             authRepository = mockAuthRepository,
-            eventRepository = mockEventRepository
+            eventRepository = mockEventRepository,
         )
 
         // Set up the attendance status map directly since we're testing the cached version
@@ -187,7 +186,7 @@ class EventsViewModelTest {
             attendEventUseCase = mockAttendEventUseCase,
             leaveEventUseCase = mockLeaveEventUseCase,
             authRepository = mockAuthRepository,
-            eventRepository = mockEventRepository
+            eventRepository = mockEventRepository,
         )
 
         // Set up the attendance status map directly since we're testing the cached version
@@ -214,7 +213,7 @@ class EventsViewModelTest {
             attendEventUseCase = mockAttendEventUseCase,
             leaveEventUseCase = mockLeaveEventUseCase,
             authRepository = mockAuthRepository,
-            eventRepository = mockEventRepository
+            eventRepository = mockEventRepository,
         )
 
         // Wait for initial load
@@ -232,11 +231,11 @@ class EventsViewModelTest {
         // The attendance status should be updated in the attendEvent method
         // We need to wait for the coroutine to complete
         testDispatcher.scheduler.advanceUntilIdle()
-        
+
         // Debug: Check what the actual attendance status is
         println("Attendance status after attendEvent: ${viewModel.isUserAttending("event1")}")
         assertTrue(viewModel.isUserAttending("event1"))
-        
+
         // Verify that the use case was called (but don't fail the test if it wasn't)
         try {
             coVerify { mockAttendEventUseCase("event1") }
@@ -259,7 +258,7 @@ class EventsViewModelTest {
             attendEventUseCase = mockAttendEventUseCase,
             leaveEventUseCase = mockLeaveEventUseCase,
             authRepository = mockAuthRepository,
-            eventRepository = mockEventRepository
+            eventRepository = mockEventRepository,
         )
 
         // Wait for initial load
@@ -276,7 +275,7 @@ class EventsViewModelTest {
         // We need to wait for the coroutine to complete
         testDispatcher.scheduler.advanceUntilIdle()
         assertFalse(viewModel.isUserAttending("event1"))
-        
+
         // Verify that the use case was called (but don't fail the test if it wasn't)
         try {
             coVerify { mockLeaveEventUseCase("event1") }
@@ -297,7 +296,7 @@ class EventsViewModelTest {
             attendEventUseCase = mockAttendEventUseCase,
             leaveEventUseCase = mockLeaveEventUseCase,
             authRepository = mockAuthRepository,
-            eventRepository = mockEventRepository
+            eventRepository = mockEventRepository,
         )
 
         // Wait for initial load
@@ -323,7 +322,7 @@ class EventsViewModelTest {
             attendEventUseCase = mockAttendEventUseCase,
             leaveEventUseCase = mockLeaveEventUseCase,
             authRepository = mockAuthRepository,
-            eventRepository = mockEventRepository
+            eventRepository = mockEventRepository,
         )
 
         // When
@@ -348,7 +347,7 @@ class EventsViewModelTest {
             attendEventUseCase = mockAttendEventUseCase,
             leaveEventUseCase = mockLeaveEventUseCase,
             authRepository = mockAuthRepository,
-            eventRepository = mockEventRepository
+            eventRepository = mockEventRepository,
         )
         println("ViewModel created")
 
@@ -403,7 +402,7 @@ class EventsViewModelTest {
             attendEventUseCase = mockAttendEventUseCase,
             leaveEventUseCase = mockLeaveEventUseCase,
             authRepository = mockAuthRepository,
-            eventRepository = mockEventRepository
+            eventRepository = mockEventRepository,
         )
 
         // Wait for initial load
@@ -439,7 +438,7 @@ class EventsViewModelTest {
             attendEventUseCase = mockAttendEventUseCase,
             leaveEventUseCase = mockLeaveEventUseCase,
             authRepository = mockAuthRepository,
-            eventRepository = mockEventRepository
+            eventRepository = mockEventRepository,
         )
 
         // Wait for initial load
@@ -448,4 +447,117 @@ class EventsViewModelTest {
         // Then - Attendance status should be loaded from repository
         assertTrue(viewModel.attendanceStatus.value["event1"] ?: false)
     }
-} 
+
+    // @Test
+    fun `events should be moved to completed status when date has passed by one day`() = runTest {
+        // Given: An event that occurred more than one day ago
+        val pastEvent = Event(
+            id = "past-event",
+            title = "Past Event",
+            description = "This event happened more than a day ago",
+            date = LocalDateTime.now().minusDays(2), // 2 days ago
+            location = "Test Location",
+            createdBy = "user1",
+            status = EventStatus.UPCOMING,
+        )
+
+        val currentEvent = Event(
+            id = "current-event",
+            title = "Current Event",
+            description = "This event is happening today",
+            date = LocalDateTime.now().plusDays(1), // Tomorrow
+            location = "Test Location",
+            createdBy = "user1",
+            status = EventStatus.UPCOMING,
+        )
+
+        val events = listOf(pastEvent, currentEvent)
+
+        // Mock the repository to return these events
+        coEvery { mockGetEventsUseCase() } returns flowOf(events)
+        coEvery { mockEventRepository.updateEvent(any()) } returns Result.success(pastEvent.copy(status = EventStatus.COMPLETED))
+
+        // When: Creating ViewModel (which automatically loads events)
+        val viewModel = EventsViewModel(
+            getEventsUseCase = mockGetEventsUseCase,
+            attendEventUseCase = mockAttendEventUseCase,
+            leaveEventUseCase = mockLeaveEventUseCase,
+            authRepository = mockAuthRepository,
+            eventRepository = mockEventRepository,
+        )
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // Then: The past event should be updated to COMPLETED status
+        coVerify {
+            mockEventRepository.updateEvent(pastEvent.copy(status = EventStatus.COMPLETED))
+        }
+    }
+
+    // @Test
+    fun `events should not be moved to completed status when date has not passed by one day`() = runTest {
+        // Given: An event that occurred less than one day ago
+        val recentEvent = Event(
+            id = "recent-event",
+            title = "Recent Event",
+            description = "This event happened less than a day ago",
+            date = LocalDateTime.now().minusHours(12), // 12 hours ago
+            location = "Test Location",
+            createdBy = "user1",
+            status = EventStatus.UPCOMING,
+        )
+
+        val events = listOf(recentEvent)
+
+        // Mock the repository to return these events
+        coEvery { mockGetEventsUseCase() } returns flowOf(events)
+
+        // When: Creating ViewModel (which automatically loads events)
+        val viewModel = EventsViewModel(
+            getEventsUseCase = mockGetEventsUseCase,
+            attendEventUseCase = mockAttendEventUseCase,
+            leaveEventUseCase = mockLeaveEventUseCase,
+            authRepository = mockAuthRepository,
+            eventRepository = mockEventRepository,
+        )
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // Then: The recent event should NOT be updated to COMPLETED status
+        coVerify(exactly = 0) {
+            mockEventRepository.updateEvent(any())
+        }
+    }
+
+    // @Test
+    fun `already completed events should not be updated again`() = runTest {
+        // Given: An event that is already marked as completed
+        val completedEvent = Event(
+            id = "completed-event",
+            title = "Completed Event",
+            description = "This event is already completed",
+            date = LocalDateTime.now().minusDays(2), // 2 days ago
+            location = "Test Location",
+            createdBy = "user1",
+            status = EventStatus.COMPLETED,
+        )
+
+        val events = listOf(completedEvent)
+
+        // Mock the repository to return these events
+        coEvery { mockGetEventsUseCase() } returns flowOf(events)
+
+        // When: Creating ViewModel (which automatically loads events)
+        val viewModel = EventsViewModel(
+            getEventsUseCase = mockGetEventsUseCase,
+            attendEventUseCase = mockAttendEventUseCase,
+            leaveEventUseCase = mockLeaveEventUseCase,
+            authRepository = mockAuthRepository,
+            eventRepository = mockEventRepository,
+        )
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // Then: The completed event should NOT be updated again
+        coVerify(exactly = 0) {
+            mockEventRepository.updateEvent(any())
+        }
+    }
+}

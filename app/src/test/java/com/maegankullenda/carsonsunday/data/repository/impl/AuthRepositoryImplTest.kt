@@ -2,17 +2,9 @@ package com.maegankullenda.carsonsunday.data.repository.impl
 
 import com.maegankullenda.carsonsunday.data.source.DataSourceManager
 import com.maegankullenda.carsonsunday.data.source.local.UserLocalDataSource
-import com.maegankullenda.carsonsunday.domain.model.User
-import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -28,7 +20,7 @@ class AuthRepositoryImplTest {
         mockDataSourceManager = mockk()
         mockUserLocalDataSource = mockk()
         authRepository = AuthRepositoryImpl(mockDataSourceManager)
-        
+
         // Setup DataSourceManager to return the mock UserLocalDataSource
         every { mockDataSourceManager.userLocalDataSource } returns mockUserLocalDataSource
     }

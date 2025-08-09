@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -30,15 +31,22 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.compose.LifecycleStartEffect
 import com.maegankullenda.carsonsunday.domain.model.Event
 import com.maegankullenda.carsonsunday.domain.model.EventStatus
 import com.maegankullenda.carsonsunday.domain.model.UserRole
+import com.maegankullenda.carsonsunday.ui.components.CalendarPermissionDialog
+import com.maegankullenda.carsonsunday.ui.components.GoogleAccountDialog
+import com.maegankullenda.carsonsunday.ui.components.LocalPermissionHandler
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
@@ -53,7 +61,37 @@ fun eventsScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val currentUser by viewModel.currentUser.collectAsStateWithLifecycle()
     val selectedTab by viewModel.selectedTab.collectAsStateWithLifecycle()
+    val hasCalendarPermission by viewModel.hasCalendarPermissionState.collectAsStateWithLifecycle()
+    val hasCalendarAccount by viewModel.hasCalendarAccountState.collectAsStateWithLifecycle()
     val isAdmin = currentUser?.role == UserRole.ADMIN
+    var showPermissionDialog by remember { mutableStateOf(false) }
+    var showGoogleAccountDialog by remember { mutableStateOf(false) }
+    var permissionDialogDismissed by remember { mutableStateOf(false) }
+    var googleAccountDialogDismissed by remember { mutableStateOf(false) }
+
+    // Refresh calendar integration state on resume (e.g., after returning from Settings)
+    LifecycleStartEffect(Unit) {
+        viewModel.refreshCalendarIntegrationState()
+        onStopOrDispose { }
+    }
+
+    // Reset dismissed flags if conditions change
+    if (hasCalendarPermission) {
+        permissionDialogDismissed = false
+    }
+    if (hasCalendarAccount) {
+        googleAccountDialogDismissed = false
+    }
+
+    // Show permission dialog if needed
+    if (!hasCalendarPermission && !showPermissionDialog && !permissionDialogDismissed) {
+        showPermissionDialog = true
+    }
+
+    // Show Google account dialog if needed (only after permission granted)
+    if (hasCalendarPermission && !hasCalendarAccount && !showGoogleAccountDialog && !googleAccountDialogDismissed) {
+        showGoogleAccountDialog = true
+    }
 
     Scaffold(
         topBar = {
@@ -65,6 +103,9 @@ fun eventsScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = { viewModel.refreshEvents() }) {
+                        Icon(Icons.Default.Refresh, contentDescription = "Refresh Events")
+                    }
                     if (isAdmin) {
                         IconButton(onClick = onNavigateToCreateEvent) {
                             Icon(Icons.Default.Add, contentDescription = "Create Event")
@@ -94,9 +135,7 @@ fun eventsScreen(
 
             // Content based on selected tab
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .weight(1f),
+                modifier = Modifier.fillMaxSize(),
             ) {
                 when (val state = uiState) {
                     is EventsUiState.Loading -> {
@@ -114,16 +153,9 @@ fun eventsScreen(
                                 verticalArrangement = Arrangement.Center,
                             ) {
                                 Text(
-                                    text = "No ${selectedTab.name.lowercase()} events found",
+                                    text = "No events found",
                                     style = MaterialTheme.typography.bodyLarge,
                                 )
-                                if (isAdmin && selectedTab == EventStatus.UPCOMING) {
-                                    Spacer(modifier = Modifier.height(16.dp))
-                                    Text(
-                                        text = "Tap the + button to create your first event",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                    )
-                                }
                             }
                         } else {
                             LazyColumn(
@@ -132,7 +164,11 @@ fun eventsScreen(
                                 verticalArrangement = Arrangement.spacedBy(8.dp),
                             ) {
                                 items(state.events) { event ->
-                                    eventCard(event = event, onClick = { onNavigateToEventDetail(event.id) })
+                                    eventCard(
+                                        event = event,
+                                        onClick = { onNavigateToEventDetail(event.id) },
+                                        viewModel = viewModel,
+                                    )
                                 }
                             }
                         }
@@ -156,6 +192,41 @@ fun eventsScreen(
             }
         }
     }
+
+    // Calendar permission dialog
+    if (showPermissionDialog) {
+        val permissionHandler = LocalPermissionHandler.current
+        CalendarPermissionDialog(
+            onDismiss = {
+                showPermissionDialog = false
+                permissionDialogDismissed = true
+            },
+            onRequestPermission = {
+                showPermissionDialog = false
+                permissionDialogDismissed = true
+                // Request permissions through MainActivity
+                permissionHandler.requestCalendarPermissions()
+            },
+            permissionHandler = permissionHandler,
+        )
+    }
+
+    // Google account dialog
+    if (showGoogleAccountDialog) {
+        val permissionHandler = LocalPermissionHandler.current
+        GoogleAccountDialog(
+            onDismiss = {
+                showGoogleAccountDialog = false
+                googleAccountDialogDismissed = true
+            },
+            onOpenSettings = {
+                showGoogleAccountDialog = false
+                googleAccountDialogDismissed = true
+                // Open device settings for account management
+                permissionHandler.openAppSettings()
+            },
+        )
+    }
 }
 
 @Composable
@@ -168,6 +239,9 @@ private fun eventCard(
     val currentUser by viewModel.currentUser.collectAsStateWithLifecycle()
     val attendanceStatus by viewModel.attendanceStatus.collectAsStateWithLifecycle()
     val isUserAttending = attendanceStatus[event.id] ?: false
+    val hasCalendarPermission = viewModel.hasCalendarPermission()
+    val hasGoogleAccount = viewModel.hasGoogleAccountSetUp()
+    val isInCalendar = viewModel.isEventInCalendar(event)
 
     Card(
         modifier = Modifier
@@ -193,6 +267,41 @@ private fun eventCard(
                 text = "Location: ${event.location}",
                 style = MaterialTheme.typography.bodySmall,
             )
+
+            // Calendar status for attending users
+            if (isUserAttending && event.status == EventStatus.UPCOMING) {
+                Spacer(modifier = Modifier.height(4.dp))
+                when {
+                    !hasCalendarPermission -> {
+                        Text(
+                            text = "📅 Calendar permission needed",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                    hasCalendarPermission && !hasGoogleAccount -> {
+                        Text(
+                            text = "📅 Google account needed",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                    hasCalendarPermission && hasGoogleAccount && isInCalendar -> {
+                        Text(
+                            text = "📅 Added to calendar",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                    hasCalendarPermission && hasGoogleAccount && !isInCalendar -> {
+                        Text(
+                            text = "📅 Not in calendar",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
 
             // Attendance information
             if (event.status == EventStatus.UPCOMING) {

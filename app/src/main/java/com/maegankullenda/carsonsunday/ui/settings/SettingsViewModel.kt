@@ -23,8 +23,10 @@ class SettingsViewModel @Inject constructor(
     }
 
     private fun loadCurrentSettings() {
+        val isRemote = dataSourceManager.isUsingRemoteStorage()
+        println("DEBUG: Current storage setting - Remote: $isRemote")
         _uiState.value = SettingsUiState(
-            isUsingRemoteStorage = dataSourceManager.isUsingRemoteStorage(),
+            isUsingRemoteStorage = isRemote,
         )
     }
 
@@ -38,4 +40,4 @@ class SettingsViewModel @Inject constructor(
 
 data class SettingsUiState(
     val isUsingRemoteStorage: Boolean = true, // Default to Firebase remote storage
-) 
+)

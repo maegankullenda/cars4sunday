@@ -33,7 +33,7 @@ class EventRemoteDataSource @Inject constructor(
                 "attendees" to event.attendees,
                 "attendeeLimit" to event.attendeeLimit,
             )
-            
+
             eventsCollection.document(event.id).set(eventData).await()
             Result.success(event)
         } catch (e: Exception) {
@@ -96,7 +96,7 @@ class EventRemoteDataSource @Inject constructor(
                 "attendees" to event.attendees,
                 "attendeeLimit" to event.attendeeLimit,
             )
-            
+
             eventsCollection.document(event.id).update(eventData).await()
             Result.success(event)
         } catch (e: Exception) {
@@ -164,11 +164,11 @@ class EventRemoteDataSource @Inject constructor(
                 close(error)
                 return@addSnapshotListener
             }
-            
+
             val events = snapshot?.documents?.mapNotNull { it.toEvent() } ?: emptyList()
             trySend(events)
         }
-        
+
         awaitClose { listener.remove() }
     }
 
@@ -180,11 +180,11 @@ class EventRemoteDataSource @Inject constructor(
                     close(error)
                     return@addSnapshotListener
                 }
-                
+
                 val events = snapshot?.documents?.mapNotNull { it.toEvent() } ?: emptyList()
                 trySend(events)
             }
-        
+
         awaitClose { listener.remove() }
     }
 
@@ -201,7 +201,7 @@ class EventRemoteDataSource @Inject constructor(
             val statusString = getString("status") ?: return null
             val attendees = get("attendees") as? List<String> ?: emptyList()
             val attendeeLimit = getLong("attendeeLimit")?.toInt()
-            
+
             Event(
                 id = id,
                 title = title,
@@ -224,4 +224,4 @@ class EventRemoteDataSource @Inject constructor(
         private const val COLLECTION_EVENTS = "events"
         private val dateFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
     }
-} 
+}
