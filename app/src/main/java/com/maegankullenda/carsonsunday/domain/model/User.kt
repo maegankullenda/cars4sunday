@@ -13,4 +13,6 @@ data class User(
     val surname: String,
     val mobileNumber: String,
     val role: UserRole = UserRole.USER,
+    val fcmToken: String? = null,
+    val notificationsEnabled: Boolean = true,
 )

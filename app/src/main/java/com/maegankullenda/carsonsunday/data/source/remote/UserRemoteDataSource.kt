@@ -26,6 +26,8 @@ class UserRemoteDataSource @Inject constructor(
                 "surname" to user.surname,
                 "mobileNumber" to user.mobileNumber,
                 "role" to user.role.name,
+                "fcmToken" to user.fcmToken,
+                "notificationsEnabled" to user.notificationsEnabled,
             )
 
             usersCollection.document(user.id).set(userData).await()
@@ -83,6 +85,8 @@ class UserRemoteDataSource @Inject constructor(
                 "surname" to user.surname,
                 "mobileNumber" to user.mobileNumber,
                 "role" to user.role.name,
+                "fcmToken" to user.fcmToken,
+                "notificationsEnabled" to user.notificationsEnabled,
             )
 
             usersCollection.document(user.id).update(userData).await()
@@ -127,6 +131,8 @@ class UserRemoteDataSource @Inject constructor(
             val surname = getString("surname") ?: return null
             val mobileNumber = getString("mobileNumber") ?: return null
             val roleString = getString("role") ?: return null
+            val fcmToken = getString("fcmToken")
+            val notificationsEnabled = getBoolean("notificationsEnabled") ?: true
 
             User(
                 id = id,
@@ -136,6 +142,8 @@ class UserRemoteDataSource @Inject constructor(
                 surname = surname,
                 mobileNumber = mobileNumber,
                 role = UserRole.valueOf(roleString),
+                fcmToken = fcmToken,
+                notificationsEnabled = notificationsEnabled,
             )
         } catch (e: Exception) {
             null

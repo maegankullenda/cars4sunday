@@ -133,6 +133,18 @@ fun eventsScreen(
                 }
             }
 
+            // Temporary test notification button (remove after Cloud Functions are deployed)
+            if (isAdmin) {
+                Button(
+                    onClick = { viewModel.testFCMMessage() },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    Text("Test FCM Notification")
+                }
+            }
+
             // Content based on selected tab
             Box(
                 modifier = Modifier.fillMaxSize(),

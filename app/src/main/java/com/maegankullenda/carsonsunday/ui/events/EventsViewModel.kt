@@ -13,6 +13,7 @@ import com.maegankullenda.carsonsunday.domain.usecase.GetEventsUseCase
 import com.maegankullenda.carsonsunday.domain.usecase.LeaveEventUseCase
 import com.maegankullenda.carsonsunday.util.CalendarAccount
 import com.maegankullenda.carsonsunday.util.CalendarManager
+import com.maegankullenda.carsonsunday.util.NotificationTestHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -30,6 +31,7 @@ class EventsViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val eventRepository: EventRepository,
     private val calendarManager: CalendarManager,
+    private val notificationTestHelper: NotificationTestHelper,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<EventsUiState>(EventsUiState.Loading)
@@ -200,7 +202,10 @@ class EventsViewModel @Inject constructor(
     fun updateEvent(event: Event) {
         viewModelScope.launch {
             val result = eventRepository.updateEvent(event)
-            result.onSuccess {
+            result.onSuccess { updatedEvent ->
+                // Test notification for event update (remove after Cloud Functions are deployed)
+                testEventUpdateNotification(updatedEvent, "has been updated")
+                
                 // Refresh events after successful update
                 loadEvents()
             }.onFailure { exception ->
@@ -346,6 +351,25 @@ class EventsViewModel @Inject constructor(
         if (event == null || event.attendees.isEmpty()) return emptyList()
         return event.attendees.mapNotNull { userId ->
             authRepository.getUserById(userId)
+        }
+    }
+
+    // Test notification methods (remove these after Cloud Functions are deployed)
+    fun testNewEventNotification(event: Event) {
+        viewModelScope.launch {
+            notificationTestHelper.testNewEventNotification(event)
+        }
+    }
+
+    fun testEventUpdateNotification(event: Event, changeDescription: String = "has been updated") {
+        viewModelScope.launch {
+            notificationTestHelper.testEventUpdateNotification(event, changeDescription)
+        }
+    }
+
+    fun testFCMMessage() {
+        viewModelScope.launch {
+            notificationTestHelper.sendTestFCMMessage()
         }
     }
 }

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.maegankullenda.carsonsunday.domain.model.Event
 import com.maegankullenda.carsonsunday.domain.usecase.CreateEventUseCase
+import com.maegankullenda.carsonsunday.util.NotificationTestHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,6 +16,7 @@ import javax.inject.Inject
 @HiltViewModel
 class CreateEventViewModel @Inject constructor(
     private val createEventUseCase: CreateEventUseCase,
+    private val notificationTestHelper: NotificationTestHelper,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<CreateEventUiState>(CreateEventUiState.Initial)
@@ -32,6 +34,9 @@ class CreateEventViewModel @Inject constructor(
 
             createEventUseCase(title, description, date, location, attendeeLimit)
                 .onSuccess { event ->
+                    // Test notification for new event (remove after Cloud Functions are deployed)
+                    notificationTestHelper.testNewEventNotification(event)
+                    
                     _uiState.value = CreateEventUiState.Success(event)
                 }
                 .onFailure { exception ->
